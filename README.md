@@ -55,8 +55,10 @@ cd xinori-notch-ai
 | `read_spreadsheet` | Reads .xlsx (via openpyxl) or CSV | freely |
 | `frontmost_app` | What app and window is in front | freely |
 | `list_apps` | Installed and running applications | freely |
-| `list_mail` | Inbox via Mail.app | freely |
+| `list_mail` | Inbox via Mail's own index — needs Full Disk Access | freely |
 | `list_calendar` | Upcoming events via EventKit | freely |
+| `compose_mail` | Opens a prefilled compose window — you send | **asks first** |
+| `create_calendar_event` | Adds an event to your default calendar | **asks first** |
 | `list_scheduled_jobs` | Your launchd agents | freely |
 | `write_file` | Creates or overwrites a file | **asks first** |
 | `move_to_trash` | Moves to the Trash — never `unlink` | **asks first** |
@@ -97,8 +99,15 @@ macOS Keychain, never to a settings file.
 ## Permissions
 
 macOS will ask, once each: **microphone** and **speech recognition** for
-dictation, **automation** for Mail, **calendars** for events. Deny any of them
-and only that tool stops working.
+dictation, and **calendars** for events. Deny either and only that tool stops
+working.
+
+**Full Disk Access is needed for `list_mail`** and has to be granted by hand:
+System Settings → Privacy & Security → Full Disk Access. Settings has a button
+that opens the pane. Without it `~/Library/Mail` isn't even listable, which is
+indistinguishable from "no mail account" unless you check for it — so the tool
+reports the permission explicitly rather than sending the model off to help you
+set up an account you already have.
 
 > **Don't launch the binary directly** (`./build/NotchAI.app/Contents/MacOS/NotchAI`).
 > TCC attributes a privacy request to the *responsible* process, which for a
@@ -145,6 +154,15 @@ behind it.
 
 **Tools** — `Tool` protocol, `ToolRegistry`, and the risk-based approval gate
 described above.
+
+**Mail** — read through Mail's own SQLite envelope index
+(`~/Library/Mail/V*/MailData/Envelope Index`, opened `immutable=1`), not
+AppleScript. Mail does not service Apple Events reliably: on the development
+machine even `count of messages of inbox` returns -1712 after 40 seconds. And
+`messages whose read status is false` forces a full mailbox walk over Apple
+Events, which is hopeless at 30k messages. The index answers in milliseconds.
+Note `line` is a reserved word in AppleScript — `set line to …` fails with
+-10003, which is what the first implementation hit.
 
 **Voice** — two speech engines, because neither covers everything.
 `SpeechTranscriber` is the better one but ships only 30 locales; Dutch isn't

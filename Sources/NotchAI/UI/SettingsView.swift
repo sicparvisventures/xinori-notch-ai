@@ -22,6 +22,7 @@ struct SettingsView: View {
                     behaviourSection
                     keysSection
                     localSection
+                    permissionsSection
                     aboutSection
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -153,6 +154,40 @@ struct SettingsView: View {
                     .tint(.white.opacity(0.85))
             }
         }
+    }
+
+    // MARK: - Permissions
+
+    private var permissionsSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            GroupHead(text: "Toegang")
+
+            SettingRow(title: "Volledige schijftoegang",
+                       subtitle: mailReadable
+                           ? "Mail kan gelezen worden"
+                           : "Nodig om je mail te kunnen lezen") {
+                if mailReadable {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.green.opacity(0.85))
+                } else {
+                    PanelButton(title: "Openen", prominent: false) {
+                        NSWorkspace.shared.open(URL(string:
+                            "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+                    }
+                }
+            }
+            if !mailReadable {
+                Text("Zet NotchAI aan in de lijst en start de app opnieuw.")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(Panel.inkFaint)
+            }
+        }
+    }
+
+    private var mailReadable: Bool {
+        if case .found = ListMailTool.locateIndex() { return true }
+        return false
     }
 
     // MARK: - About

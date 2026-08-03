@@ -13,6 +13,8 @@ struct ToolRegistry: Sendable {
         FrontmostAppTool(),
         ListMailTool(),
         ListCalendarTool(),
+        CreateCalendarEventTool(),
+        ComposeMailTool(),
         ListScheduledJobsTool(),
         ScheduleJobTool(),
         ListDirectoryTool(),

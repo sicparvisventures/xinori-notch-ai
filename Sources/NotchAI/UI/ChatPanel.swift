@@ -63,10 +63,6 @@ struct ChatPanel: View {
 
             Spacer(minLength: 0)
 
-            iconButton(chat.toolsEnabled ? "wrench.and.screwdriver.fill" : "wrench.and.screwdriver") {
-                chat.toolsEnabled.toggle()
-            }
-
             iconButton(app.speakReplies ? "speaker.wave.2.fill" : "speaker.slash.fill") {
                 app.speakReplies.toggle()
                 if !app.speakReplies { app.speaker.stop() }
