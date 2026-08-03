@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xinori Notch AI — je Mac bestuurd vanuit de notch</title>
+<meta name="description" content="Een AI-assistent in de notch van je MacBook. Leest je mail, je agenda en je bestanden, plant taken, en draait lokaal — je data blijft op je eigen machine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ───────────────────────────────────────────────────────────────
+   Xinori Design System v3 — tokens
+   Light only. Hairlines, never shadows. 4px surfaces, 8px controls.
+   ─────────────────────────────────────────────────────────────── */
+:root {
+  --snow:#F8F9FB; --white:#FFFFFF; --ice:#F0F2F5; --cloud:#E4E8ED;
+  --line:#D0D6DE; --slate:#8B95A8; --muted-fg:#606C80;
+  --midnight-3:#2A3142; --midnight-2:#1A1F2E; --midnight:#0F1219;
+  --green:#1D9E75; --green-light:#D1F2E4; --green-dark:#147A5A;
+  --warning:hsl(38 92% 50%); --warning-ink:hsl(35 80% 30%);
+
+  --font-display:'Sora',system-ui,sans-serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;
+
+  --radius:4px;          /* vlakken */
+  --radius-control:8px;  /* alles wat je aanklikt */
+}
+
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--snow);color:var(--midnight);
+     font-family:var(--font-body);font-size:14px;line-height:1.55;
+     -webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;line-height:1.22}
+p{margin:0}
+a{color:inherit}
+
+/* Rol 9: de mono-kleinkapitaal groepskop. Waar je iets groepeert, groepeer je zo. */
+.grouphead{font-family:var(--font-mono);font-size:10px;font-weight:400;
+           letter-spacing:.10em;text-transform:uppercase;color:var(--muted-fg)}
+
+.wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+.rule{border:0;border-top:1px solid var(--line);margin:0}
+
+/* ── Balk ───────────────────────────────────────────────────── */
+.bar{height:48px;background:var(--ice);border-bottom:1px solid var(--line);
+     display:flex;align-items:center;position:sticky;top:0;z-index:10}
+.bar .wrap{display:flex;align-items:center;gap:12px;width:100%}
+.mark{width:22px;height:22px;border-radius:22%;background:var(--midnight);
+      display:grid;place-items:center;flex:none}
+.mark::after{content:"";width:9px;height:4px;border-radius:0 0 3px 3px;background:var(--white)}
+.bar b{font-family:var(--font-display);font-size:13.5px;font-weight:700;letter-spacing:-.2px}
+.bar .spacer{flex:1}
+.bar a.ghost{font-size:12.5px;color:var(--muted-fg);text-decoration:none}
+.bar a.ghost:hover{color:var(--midnight)}
+
+/* ── Knoppen ────────────────────────────────────────────────── */
+.btn{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 16px;
+     border-radius:var(--radius-control);font-family:var(--font-body);
+     font-size:13px;font-weight:600;text-decoration:none;border:1px solid transparent;
+     transition:background .15s ease,border-color .15s ease}
+.btn-primary{background:var(--midnight);color:var(--white)}
+.btn-primary:hover{background:var(--midnight-2)}
+.btn-quiet{background:var(--white);color:var(--midnight);border-color:var(--line)}
+.btn-quiet:hover{background:var(--ice)}
+
+/* ── Hero ───────────────────────────────────────────────────── */
+.hero{padding:72px 0 56px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero h1{font-size:44px;font-weight:800;letter-spacing:-1.6px;margin-bottom:16px}
+.hero .lede{font-size:16px;color:var(--muted-fg);max-width:30em;margin-bottom:24px}
+.hero .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.hero .fineprint{font-size:11.5px;color:var(--muted-fg);margin-top:14px}
+
+/* Een tastbare weergave van het product: de notch met het paneel eronder. */
+.demo{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+      padding:0;overflow:hidden}
+.lid{background:var(--midnight);height:132px;position:relative;display:flex;justify-content:center}
+.notch{width:150px;height:26px;background:#000;border-radius:0 0 11px 11px;position:relative}
+.notch::before,.notch::after{content:"";position:absolute;top:0;width:9px;height:9px;background:#000}
+.notch::before{left:-9px;-webkit-mask:radial-gradient(circle 9px at 0 100%,transparent 99%,#000);
+               mask:radial-gradient(circle 9px at 0 100%,transparent 99%,#000)}
+.notch::after{right:-9px;-webkit-mask:radial-gradient(circle 9px at 100% 100%,transparent 99%,#000);
+              mask:radial-gradient(circle 9px at 100% 100%,transparent 99%,#000)}
+.panel{position:absolute;top:0;left:50%;transform:translateX(-50%);
+       width:290px;background:#000;border-radius:0 0 22px 22px;padding:32px 14px 14px;color:#fff}
+.panel .q{font-size:12px;color:rgba(255,255,255,.92);margin-bottom:8px}
+.panel .tool{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.42);margin-bottom:6px}
+.panel .a{font-size:12px;color:rgba(255,255,255,.82)}
+.demo-foot{padding:12px 14px;border-top:1px solid var(--line);
+           display:flex;justify-content:space-between;align-items:center}
+
+/* ── Secties ────────────────────────────────────────────────── */
+section{padding:56px 0}
+.sec-head{margin-bottom:28px}
+.sec-head h2{font-size:22px;font-weight:700;letter-spacing:-.5px;margin:10px 0 8px}
+.sec-head p{color:var(--muted-fg);max-width:52em}
+
+.grid{display:grid;gap:16px}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:20px}
+.card h3{font-size:13.5px;font-weight:700;margin-bottom:6px}
+.card p{font-size:13px;color:var(--muted-fg)}
+.card .ask{font-family:var(--font-mono);font-size:11px;color:var(--midnight-3);
+           background:var(--ice);border-radius:var(--radius);padding:8px 10px;margin-top:12px}
+
+/* ── Privacy ────────────────────────────────────────────────── */
+.privacy{background:var(--white);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.badge{display:inline-flex;align-items:center;gap:6px;height:22px;padding:0 9px;
+       border-radius:var(--radius-control);background:var(--green-light);
+       color:var(--green-dark);font-size:11.5px;font-weight:600}
+.dot{width:6px;height:6px;border-radius:999px;background:var(--green);flex:none}
+
+/* ── Stappen ────────────────────────────────────────────────── */
+.steps{counter-reset:s;display:grid;gap:0}
+.step{display:grid;grid-template-columns:34px 1fr;gap:16px;padding:18px 0;
+      border-bottom:1px solid var(--cloud)}
+.step:last-child{border-bottom:0}
+.step .n{counter-increment:s;font-family:var(--font-display);font-size:19px;font-weight:700;
+         color:var(--slate);line-height:1}
+.step .n::before{content:counter(s)}
+.step h3{font-size:13.5px;font-weight:700;margin-bottom:4px}
+.step p{font-size:13px;color:var(--muted-fg)}
+.step code{font-family:var(--font-mono);font-size:12px;background:var(--ice);
+           padding:1px 5px;border-radius:var(--radius)}
+
+/* ── Tabel ──────────────────────────────────────────────────── */
+.table{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.row{display:grid;grid-template-columns:190px 1fr 130px;gap:16px;padding:11px 16px;
+     border-bottom:1px solid var(--cloud);align-items:center;font-size:13px}
+.row:last-child{border-bottom:0}
+.row .name{font-family:var(--font-mono);font-size:12px}
+.row .what{color:var(--muted-fg)}
+.pill{font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--radius-control);
+      justify-self:start;white-space:nowrap}
+.pill-free{background:var(--ice);color:var(--muted-fg)}
+.pill-ask{background:hsl(38 92% 50% / .12);color:var(--warning-ink)}
+
+/* ── FAQ ────────────────────────────────────────────────────── */
+details{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+        padding:14px 16px;margin-bottom:8px}
+summary{font-family:var(--font-display);font-size:13.5px;font-weight:700;cursor:pointer;
+        list-style:none;display:flex;justify-content:space-between;gap:12px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--slate);font-family:var(--font-body);font-weight:400}
+details[open] summary::after{content:"–"}
+details p{margin-top:10px;font-size:13px;color:var(--muted-fg)}
+
+/* ── CTA + voet ─────────────────────────────────────────────── */
+.cta{background:var(--midnight);color:var(--white);border-radius:var(--radius);
+     padding:40px;text-align:center}
+.cta h2{font-size:26px;font-weight:800;letter-spacing:-.9px;margin-bottom:10px}
+.cta p{color:rgba(255,255,255,.68);max-width:38em;margin:0 auto 22px}
+.cta .btn-primary{background:var(--white);color:var(--midnight)}
+.cta .btn-primary:hover{background:var(--ice)}
+.cta .btn-quiet{background:transparent;color:var(--white);border-color:rgba(255,255,255,.28)}
+.cta .btn-quiet:hover{background:rgba(255,255,255,.08)}
+
+footer{padding:28px 0 40px;font-size:12px;color:var(--muted-fg)}
+footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+footer a{color:var(--muted-fg);text-decoration:none}
+footer a:hover{color:var(--midnight)}
+
+@media (max-width:860px){
+  .hero-grid,.grid-3,.grid-2{grid-template-columns:1fr}
+  .hero h1{font-size:32px;letter-spacing:-1.1px}
+  .row{grid-template-columns:1fr;gap:4px}
+  .cta{padding:28px 20px}
+}
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="wrap">
+    <span class="mark"></span>
+    <b>Xinori Notch AI</b>
+    <span class="spacer"></span>
+    <a class="ghost" href="#wat">Wat het doet</a>
+    <a class="ghost" href="#privacy">Privacy</a>
+    <a class="ghost" href="#starten">Starten</a>
+    <a class="btn btn-primary" href="https://github.com/sicparvisventures/xinori-notch-ai/releases/latest">Download</a>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="grouphead">Voor ondernemers</span>
+      <h1>Je Mac beantwoordt nu je vragen.</h1>
+      <p class="lede">
+        Klik op de notch van je MacBook en vraag wat je wil weten. Xinori Notch AI
+        leest je mail, checkt je agenda, vindt dat ene contract terug en plant
+        terugkerende taken in — zonder dat je van app wisselt.
+      </p>
+      <div class="actions">
+        <a class="btn btn-primary" href="https://github.com/sicparvisventures/xinori-notch-ai/releases/latest">Gratis downloaden</a>
+        <a class="btn btn-quiet" href="https://github.com/sicparvisventures/xinori-notch-ai">Bekijk de broncode</a>
+      </div>
+      <p class="fineprint">MacBook met notch · macOS 26 of nieuwer · open source onder MIT</p>
+    </div>
+
+    <div class="demo">
+      <div class="lid">
+        <div class="notch"></div>
+        <div class="panel">
+          <p class="q">Wat staat er vandaag op de planning en heb ik nog dringende mail?</p>
+          <p class="tool">list_calendar(days: 1)</p>
+          <p class="tool">list_mail(unread_only: true)</p>
+          <p class="a">Drie afspraken: teamoverleg om 9:30, lunch met de accountant om 12:00,
+             en een call met Van Damme om 15:00. Vier ongelezen mails, waarvan één van je
+             boekhouder over de kwartaalaangifte.</p>
+        </div>
+      </div>
+      <div class="demo-foot">
+        <span class="grouphead">Lokaal model</span>
+        <span class="badge"><span class="dot"></span>Geen data verstuurd</span>
+      </div>
+    </div>
+  </div>
+</header>
+
+<hr class="rule">
+
+<section id="wat">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="grouphead">Wat het doet</span>
+      <h2>Eén plek voor de vragen die je dag opbreken</h2>
+      <p>Niet nog een chatvenster. Het kijkt echt in je mail, je agenda, je bestanden
+         en je geplande taken — en doet daar iets mee.</p>
+    </div>
+
+    <div class="grid grid-3">
+      <div class="card">
+        <h3>Je inbox, samengevat</h3>
+        <p>Wat is er binnengekomen, wat is dringend, en wat kan wachten. Zonder dat je
+           Mail hoeft te openen.</p>
+        <p class="ask">"Vat mijn ongelezen mail samen"</p>
+      </div>
+      <div class="card">
+        <h3>Je dag in één zin</h3>
+        <p>Afspraken voor vandaag of de hele week, inclusief locaties, uit de agenda die
+           je al gebruikt.</p>
+        <p class="ask">"Ben ik donderdagmiddag vrij?"</p>
+      </div>
+      <div class="card">
+        <h3>Terugvinden wat je kwijt bent</h3>
+        <p>Zoekt op naam én op inhoud via Spotlight. Ook in documenten waarvan je de
+           naam niet meer weet.</p>
+        <p class="ask">"Zoek het contract met Van Damme"</p>
+      </div>
+      <div class="card">
+        <h3>Terugkerende taken</h3>
+        <p>Laat een back-up, export of script vanzelf draaien. Blijft werken na
+           herstarten, zonder dat je iets hoeft te onderhouden.</p>
+        <p class="ask">"Draai elke maandag om 8 uur mijn back-up"</p>
+      </div>
+      <div class="card">
+        <h3>Je Mac in het kort</h3>
+        <p>Batterij, schijfruimte, geheugen — de dingen waarvoor je normaal drie
+           vensters opent.</p>
+        <p class="ask">"Is mijn schijf bijna vol?"</p>
+      </div>
+      <div class="card">
+        <h3>Met je stem</h3>
+        <p>Spraak wordt op het toestel zelf omgezet naar tekst en het antwoord wordt
+           voorgelezen. Handig met je handen vol.</p>
+        <p class="ask">Druk op de microfoon en praat</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="privacy" id="privacy">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="grouphead">Privacy en controle</span>
+      <h2>Je klantgegevens blijven op je eigen machine</h2>
+      <p>Voor wie met cliëntdossiers, contracten of persoonsgegevens werkt is
+         "het gaat naar een server in de VS" geen detail. Daarom staat het hier andersom.</p>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3>Standaard lokaal</h3>
+        <p>Het model draait op je eigen Mac via Ollama. Je mail, je agenda en je
+           documenten verlaten je machine niet. Ook je stem niet: spraakherkenning
+           gebeurt op het toestel.</p>
+      </div>
+      <div class="card">
+        <h3>Cloud alleen als jij dat kiest</h3>
+        <p>Wil je meer kracht, dan koppel je Anthropic, OpenAI of Moonshot met je eigen
+           sleutel. Die sleutel gaat in de Keychain van macOS, niet in een instellingenbestand.</p>
+      </div>
+      <div class="card">
+        <h3>Het vraagt voordat het iets verandert</h3>
+        <p>Lezen mag vrij. Iets aanpassen, plannen of uitvoeren niet: dan stopt het en
+           toont het je de exacte opdracht ter goedkeuring. Er is geen "altijd toestaan".</p>
+      </div>
+      <div class="card">
+        <h3>Controleerbaar</h3>
+        <p>De volledige broncode staat op GitHub onder een MIT-licentie. Je hoeft ons niet
+           te geloven — je kunt het nakijken, of laten nakijken.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="grouphead">De grens</span>
+      <h2>Wat het zelf mag, en waarvoor het je toestemming vraagt</h2>
+      <p>Een assistent die je Mac bestuurt is precies zo veilig als wat hij kan doen
+         zonder jou. Daarom is dat per functie vastgelegd.</p>
+    </div>
+
+    <div class="table">
+      <div class="row"><span class="name">list_mail</span><span class="what">Leest je inbox</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">list_calendar</span><span class="what">Leest je agenda</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">search_files</span><span class="what">Zoekt bestanden via Spotlight</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">system_info</span><span class="what">Batterij, schijf, geheugen</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">list_scheduled_jobs</span><span class="what">Toont je geplande taken</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">schedule_job</span><span class="what">Maakt een terugkerende taak aan</span><span class="pill pill-ask">Vraagt eerst</span></div>
+      <div class="row"><span class="name">run_shell</span><span class="what">Voert een commando uit</span><span class="pill pill-ask">Vraagt eerst</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="starten">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="grouphead">Starten</span>
+      <h2>Binnen vijf minuten draaiend</h2>
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <span class="n"></span>
+        <div>
+          <h3>Installeer Ollama en haal het model op</h3>
+          <p>Download <a href="https://ollama.com">Ollama</a> en draai <code>ollama pull qwen3:8b</code>.
+             Dat is het model dat lokaal op je Mac draait — ongeveer 5 GB.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n"></span>
+        <div>
+          <h3>Download de app</h3>
+          <p>Pak het zip-bestand uit en sleep <code>NotchAI.app</code> naar je Programma's-map.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n"></span>
+        <div>
+          <h3>Start hem de eerste keer met rechtermuisknop</h3>
+          <p>De app is nog niet door Apple genotariseerd, dus macOS houdt hem de eerste keer
+             tegen. Rechtermuisknop op de app → <strong>Open</strong> → <strong>Open</strong>.
+             Daarna werkt dubbelklikken gewoon.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="n"></span>
+        <div>
+          <h3>Klik op de notch</h3>
+          <p>Beweeg je muis naar de notch en klik. Typ je vraag, of druk op de microfoon
+             en praat. De eerste keer vraagt macOS toegang tot microfoon, agenda en Mail —
+             elk apart, en je kunt elk onderdeel weigeren.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="grouphead">Vragen</span>
+      <h2>Wat ondernemers meestal eerst vragen</h2>
+    </div>
+
+    <details>
+      <summary>Kost het iets?</summary>
+      <p>Nee. De app is gratis en open source onder een MIT-licentie, en het lokale model
+         draait op je eigen hardware zonder abonnement. Alleen als je bewust een cloud-model
+         koppelt betaal je die aanbieder rechtstreeks, met je eigen sleutel.</p>
+    </details>
+    <details>
+      <summary>Gaan mijn mails of klantgegevens naar een server?</summary>
+      <p>Niet in de standaardopstelling. Het model draait lokaal, en spraak wordt op het
+         toestel zelf omgezet naar tekst. Pas als je zelf een cloud-provider instelt en die
+         selecteert, gaat de inhoud van dat gesprek naar die provider.</p>
+    </details>
+    <details>
+      <summary>Kan het per ongeluk iets verwijderen?</summary>
+      <p>Alles wat iets verandert — een taak inplannen, een commando uitvoeren — stopt en
+         toont je de exacte opdracht met alle argumenten. Pas na jouw goedkeuring gebeurt er
+         iets. Er is geen instelling om dat uit te zetten.</p>
+    </details>
+    <details>
+      <summary>Werkt het op een MacBook zonder notch of op een externe monitor?</summary>
+      <p>Nog niet. De app hangt aan de notch van het ingebouwde scherm; op een Mac zonder
+         notch sluit hij zichzelf af. Een variant die als zwevend paneel werkt staat op de lijst.</p>
+    </details>
+    <details>
+      <summary>Werkt het in het Nederlands?</summary>
+      <p>Ja, zowel typen als spreken. Voor Nederlandse spraak wordt automatisch de
+         herkenningsmotor gebruikt die <code>nl-BE</code> en <code>nl-NL</code> ondersteunt.</p>
+    </details>
+    <details>
+      <summary>Wie zit hierachter?</summary>
+      <p>Xinori. De volledige broncode staat op GitHub, dus je kunt zelf zien wat de app doet
+         en wat hij níét doet — of dat door je eigen IT-partner laten nakijken.</p>
+    </details>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="cta">
+      <h2>Probeer het op je eigen Mac</h2>
+      <p>Gratis, open source, en je data blijft waar hij hoort. Vijf minuten installeren,
+         daarna is het gewoon je notch.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a class="btn btn-primary" href="https://github.com/sicparvisventures/xinori-notch-ai/releases/latest">Download voor macOS</a>
+        <a class="btn btn-quiet" href="https://github.com/sicparvisventures/xinori-notch-ai">Broncode op GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<footer>
+  <div class="wrap">
+    <span>Xinori Notch AI — MIT-licentie</span>
+    <span>
+      <a href="https://github.com/sicparvisventures/xinori-notch-ai">GitHub</a> ·
+      <a href="https://github.com/sicparvisventures/xinori-notch-ai/issues">Iets gevonden? Meld het</a>
+    </span>
+  </div>
+</footer>
+
+</body>
+</html>
