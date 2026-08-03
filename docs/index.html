@@ -323,8 +323,16 @@ footer a:hover{color:var(--midnight)}
       <div class="row"><span class="name">list_mail</span><span class="what">Leest je inbox</span><span class="pill pill-free">Direct</span></div>
       <div class="row"><span class="name">list_calendar</span><span class="what">Leest je agenda</span><span class="pill pill-free">Direct</span></div>
       <div class="row"><span class="name">search_files</span><span class="what">Zoekt bestanden via Spotlight</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">list_directory</span><span class="what">Bekijkt de inhoud van een map</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">read_file</span><span class="what">Leest een tekstbestand</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">read_spreadsheet</span><span class="what">Leest een Excel- of CSV-bestand</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">list_apps</span><span class="what">Ziet welke apps je hebt en wat draait</span><span class="pill pill-free">Direct</span></div>
       <div class="row"><span class="name">system_info</span><span class="what">Batterij, schijf, geheugen</span><span class="pill pill-free">Direct</span></div>
       <div class="row"><span class="name">list_scheduled_jobs</span><span class="what">Toont je geplande taken</span><span class="pill pill-free">Direct</span></div>
+      <div class="row"><span class="name">write_file</span><span class="what">Maakt of overschrijft een bestand</span><span class="pill pill-ask">Vraagt eerst</span></div>
+      <div class="row"><span class="name">move_to_trash</span><span class="what">Naar de prullenmand, nooit definitief</span><span class="pill pill-ask">Vraagt eerst</span></div>
+      <div class="row"><span class="name">open_path</span><span class="what">Opent een bestand, map of link</span><span class="pill pill-ask">Vraagt eerst</span></div>
+      <div class="row"><span class="name">control_app</span><span class="what">Haalt een app naar voren of sluit hem</span><span class="pill pill-ask">Vraagt eerst</span></div>
       <div class="row"><span class="name">schedule_job</span><span class="what">Maakt een terugkerende taak aan</span><span class="pill pill-ask">Vraagt eerst</span></div>
       <div class="row"><span class="name">run_shell</span><span class="what">Voert een commando uit</span><span class="pill pill-ask">Vraagt eerst</span></div>
     </div>
@@ -342,9 +350,9 @@ footer a:hover{color:var(--midnight)}
       <div class="step">
         <span class="n"></span>
         <div>
-          <h3>Installeer Ollama en haal het model op</h3>
-          <p>Download <a href="https://ollama.com">Ollama</a> en draai <code>ollama pull qwen3:8b</code>.
-             Dat is het model dat lokaal op je Mac draait — ongeveer 5 GB.</p>
+          <h3>Installeer Ollama</h3>
+          <p>Download <a href="https://ollama.com">Ollama</a> — dat draait het taalmodel
+             lokaal op je Mac. Het model zelf haalt de app straks zelf op.</p>
         </div>
       </div>
       <div class="step">
@@ -366,10 +374,11 @@ footer a:hover{color:var(--midnight)}
       <div class="step">
         <span class="n"></span>
         <div>
-          <h3>Klik op de notch</h3>
-          <p>Beweeg je muis naar de notch en klik. Typ je vraag, of druk op de microfoon
-             en praat. De eerste keer vraagt macOS toegang tot microfoon, agenda en Mail —
-             elk apart, en je kunt elk onderdeel weigeren.</p>
+          <h3>Klik op de notch — de app doet de rest</h3>
+          <p>Bij de eerste start loopt er een korte wizard in de notch die Ollama voor je
+             detecteert, opstart en het model binnenhaalt met een voortgangsbalk. Daarna
+             typ of spreek je gewoon. macOS vraagt per onderdeel om toegang — microfoon,
+             agenda, Mail — en je kunt elk daarvan weigeren.</p>
         </div>
       </div>
     </div>
