@@ -21,6 +21,8 @@
 	<!-- No Dock icon, no app switcher entry: the notch is the entire UI. -->
 	<key>LSUIElement</key>
 	<true/>
+	<key>CFBundleIconFile</key>
+	<string>NotchAI</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>

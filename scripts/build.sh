@@ -18,6 +18,11 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BIN" "$APP/Contents/MacOS/NotchAI"
 cp "$ROOT/Resources/Info.plist" "$APP/Contents/Info.plist"
 
+# The icon is drawn from code rather than checked in as a binary, so it stays
+# editable and reviewable in the diff.
+swift "$ROOT/scripts/make-icon.swift" "$ROOT/build/NotchAI.iconset" >/dev/null
+iconutil -c icns "$ROOT/build/NotchAI.iconset" -o "$APP/Contents/Resources/NotchAI.icns"
+
 # Ad-hoc signature. Fine for local runs; once we add the microphone (phase 4)
 # this needs a stable identity or macOS will re-prompt for TCC on every build.
 codesign --force --sign - "$APP" >/dev/null 2>&1

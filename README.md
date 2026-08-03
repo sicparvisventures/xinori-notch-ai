@@ -29,12 +29,23 @@ capability.
 
 ## Install
 
-Grab the `.zip` from [Releases](../../releases), unzip, drop `NotchAI.app` in
-`/Applications`.
+```bash
+curl -fsSL https://sicparvisventures.github.io/xinori-notch-ai/install.sh | bash
+```
 
-**First launch:** the build is ad-hoc signed, not notarized, so macOS quarantines
-it. Right-click the app → **Open** → **Open** — once. Double-clicking works from
-then on. (Or `xattr -dr com.apple.quarantine /Applications/NotchAI.app`.)
+That fetches the latest release, puts it in `/Applications` and launches it.
+
+**Why a script rather than "download the zip".** The app is ad-hoc signed — no
+paid Apple Developer account — so a browser download gets quarantined and
+Gatekeeper refuses to open it. Since macOS 15 the old right-click → **Open**
+bypass no longer works for unsigned apps either; you have to go to System
+Settings → Privacy & Security and click **Open Anyway**. A file fetched with
+`curl` is never quarantined in the first place, so the script simply doesn't
+create the problem. It strips the attribute explicitly anyway, in case the zip
+came from a browser.
+
+Manual install still works — grab the `.zip` from [Releases](../../releases) and
+use the **Open Anyway** route above.
 
 Or build it yourself:
 
