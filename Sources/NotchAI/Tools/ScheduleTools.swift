@@ -10,6 +10,7 @@ private let launchAgentsDirectory = FileManager.default
     .appending(path: "Library/LaunchAgents")
 
 struct ListScheduledJobsTool: Tool {
+    let activityLabel = "Bekijkt je geplande taken"
     let name = "list_scheduled_jobs"
     let description = """
     Geeft de geplande taken (launchd agents) van deze gebruiker: label, wanneer ze \
@@ -69,6 +70,7 @@ struct ListScheduledJobsTool: Tool {
 /// Creating a job writes a file and loads it into the user's launchd domain —
 /// squarely mutating, so it never runs without confirmation.
 struct ScheduleJobTool: Tool {
+    let activityLabel = "Maakt een geplande taak"
     static let labelPrefix = "com.xinori.notchai.job."
 
     let name = "schedule_job"

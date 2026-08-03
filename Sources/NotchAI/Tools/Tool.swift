@@ -44,12 +44,18 @@ protocol Tool: Sendable {
     var risk: ToolRisk { get }
 
     func run(arguments: [String: Any]) async throws -> String
+
+    /// Shown live while the tool runs — "Leest je mail…" tells the user more
+    /// than a spinner does.
+    var activityLabel: String { get }
 }
 
 extension Tool {
     var schema: ToolSchema {
         ToolSchema(name: name, description: description, parametersJSON: parametersJSON)
     }
+
+    var activityLabel: String { "Voert \(name) uit" }
 }
 
 /// The provider-facing view of a tool: everything needed to describe it to a

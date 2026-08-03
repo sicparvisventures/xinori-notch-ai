@@ -7,6 +7,7 @@ import Foundation
 /// in a string it composed itself, so the human confirms every time — the
 /// confirmation prompt shows the exact command before anything runs.
 struct RunShellTool: Tool {
+    let activityLabel = "Voert een commando uit"
     let name = "run_shell"
     let description = """
     Voert een shell-commando uit op deze Mac en geeft de uitvoer terug. \

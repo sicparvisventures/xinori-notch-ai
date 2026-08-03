@@ -15,6 +15,14 @@ struct ToolRegistry: Sendable {
         ListCalendarTool(),
         ListScheduledJobsTool(),
         ScheduleJobTool(),
+        ListDirectoryTool(),
+        ReadFileTool(),
+        ReadSpreadsheetTool(),
+        WriteFileTool(),
+        TrashTool(),
+        OpenPathTool(),
+        ListAppsTool(),
+        ControlAppTool(),
         RunShellTool(),
     ]
 

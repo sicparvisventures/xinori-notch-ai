@@ -28,7 +28,7 @@ struct NotchRootView: View {
                 .frame(width: size.width, height: size.height)
                 .overlay {
                     if model.state == .open {
-                        ChatPanel(app: app)
+                        openContent
                             .frame(width: size.width, height: size.height)
                             .transition(.opacity)
                     } else if model.state == .hover {
@@ -39,6 +39,21 @@ struct NotchRootView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         // Animate on the state itself so shape, size and content morph as one.
         .animation(.spring(response: 0.42, dampingFraction: 0.78), value: model.state)
+    }
+
+    /// Settings and onboarding live in the same panel as the chat rather than
+    /// in a separate window — a floating preferences window would break the
+    /// illusion that this is part of the hardware.
+    @ViewBuilder
+    private var openContent: some View {
+        switch app.route {
+        case .onboarding:
+            OnboardingView(app: app, ollama: app.ollama, chat: app.chat)
+        case .chat:
+            ChatPanel(app: app, chat: app.chat, transcriber: app.transcriber)
+        case .settings:
+            SettingsView(app: app, chat: app.chat, ollama: app.ollama)
+        }
     }
 
     /// The hover state is 38pt tall — room for a hairline, nothing more.

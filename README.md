@@ -19,6 +19,7 @@ capability.
 | **Talks and listens** | On-device speech-to-text (`SpeechAnalyzer` / `DictationTranscriber`), spoken replies via `AVSpeechSynthesizer`. Nothing is uploaded. |
 | **Reaches into your Mac** | Tool calling: it reads your inbox, checks the calendar, finds files, lists and creates scheduled jobs, runs shell commands. |
 | **Asks before it acts** | Read-only tools run freely. Anything that changes state stops and shows you the exact call for approval. |
+| **Sets itself up** | First launch walks you through installing Ollama and pulling a model, with a real progress bar. Settings live in the notch too — no separate preferences window. |
 
 ## Requirements
 
@@ -49,10 +50,18 @@ cd xinori-notch-ai
 |---|---|---|
 | `system_info` | Battery, disk, memory | freely |
 | `search_files` | Spotlight search by name or content | freely |
+| `list_directory` | Contents of a folder with sizes and dates | freely |
+| `read_file` | Reads a text file | freely |
+| `read_spreadsheet` | Reads .xlsx (via openpyxl) or CSV | freely |
 | `frontmost_app` | What app and window is in front | freely |
+| `list_apps` | Installed and running applications | freely |
 | `list_mail` | Inbox via Mail.app | freely |
 | `list_calendar` | Upcoming events via EventKit | freely |
 | `list_scheduled_jobs` | Your launchd agents | freely |
+| `write_file` | Creates or overwrites a file | **asks first** |
+| `move_to_trash` | Moves to the Trash — never `unlink` | **asks first** |
+| `open_path` | Opens a file, folder or URL | **asks first** |
+| `control_app` | Activates or quits an app | **asks first** |
 | `schedule_job` | Creates a recurring launchd job | **asks first** |
 | `run_shell` | Arbitrary shell command | **asks first** |
 
@@ -73,6 +82,17 @@ An LLM driving your Mac is only as safe as what it can do without you. So:
   through a shell, so an argument containing `;` or backticks is data rather than
   syntax. `run_shell` is the single deliberate exception.
 - Nothing is auto-approved and there is no "always allow" — by design.
+
+## Setup and settings
+
+On first launch an onboarding flow runs inside the notch: it detects whether
+Ollama is installed and running, offers to launch it, and pulls `qwen3:8b` with a
+live progress bar (the byte counters come straight from Ollama's `/api/pull`
+stream). Cloud provider keys are optional and can be skipped.
+
+Everything is reconfigurable afterwards from the gear icon: provider, model,
+tools on/off, spoken replies, API keys, and the Ollama status. Keys go to the
+macOS Keychain, never to a settings file.
 
 ## Permissions
 

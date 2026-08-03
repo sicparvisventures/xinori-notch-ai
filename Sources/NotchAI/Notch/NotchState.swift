@@ -51,7 +51,7 @@ final class NotchModel: ObservableObject {
     /// inverted top corners to bleed outward and for the shadow.
     static let margin: CGFloat = 24
 
-    var openSize: CGSize { CGSize(width: 560, height: 380) }
+    var openSize: CGSize { CGSize(width: 580, height: 440) }
 
     /// Size of the shape for the current state.
     var currentSize: CGSize {

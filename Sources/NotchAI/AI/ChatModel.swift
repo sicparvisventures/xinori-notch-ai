@@ -12,6 +12,10 @@ final class ChatModel: ObservableObject {
     /// this as an allow/deny prompt and nothing runs until it is answered.
     @Published private(set) var pendingApproval: ToolCall?
 
+    /// What the assistant is doing right now, shown live in the panel.
+    /// `nil` once tokens start arriving — the text itself is the signal then.
+    @Published private(set) var activity: String?
+
     @Published var toolsEnabled: Bool {
         didSet { Settings.toolsEnabled = toolsEnabled }
     }
@@ -48,10 +52,15 @@ final class ChatModel: ObservableObject {
         opsommingen tenzij er expliciet om gevraagd wordt. Spreek de taal van de gebruiker.
 
         Gebruik tools wanneer de vraag over de actuele staat van deze Mac gaat \
-        (mail, agenda, bestanden, systeem, geplande taken) in plaats van te gokken \
-        of te zeggen dat je er geen toegang toe hebt. Roep één tool tegelijk aan en \
-        wacht op het resultaat. Vat het resultaat samen in gewone taal — plak nooit \
-        de ruwe uitvoer over.
+        (mail, agenda, bestanden, apps, systeem, geplande taken) in plaats van te gokken \
+        of te zeggen dat je er geen toegang toe hebt. Vat resultaten samen in gewone \
+        taal — plak nooit de ruwe uitvoer over.
+
+        Antwoord concreet, nooit in mogelijkheden. Zeg niet "ja, dat kan ik" — kijk \
+        eerst en noem dan het echte bestand, pad, blad of programma. Als de gebruiker \
+        iets vraagt over een bestandssoort, zoek dan met search_files of list_directory \
+        welke bestanden dat zijn en noem ze bij naam en pad. Als er niets is, zeg dat, \
+        en bied aan er een te maken.
         """)
     }
 
@@ -103,6 +112,7 @@ final class ChatModel: ObservableObject {
 
         streamTask = Task { [weak self] in
             await self?.runConversation(provider: provider, model: model, tools: tools)
+            self?.activity = nil
             self?.isStreaming = false
             self?.streamTask = nil
         }
@@ -115,6 +125,7 @@ final class ChatModel: ObservableObject {
 
             let reply = ChatMessage(role: .assistant, text: "")
             messages.append(reply)
+            activity = "Denkt na"
 
             var calls: [ToolCall] = []
             do {
@@ -123,6 +134,7 @@ final class ChatModel: ObservableObject {
                     guard !Task.isCancelled else { return }
                     switch event {
                     case let .text(delta):
+                        activity = nil
                         append(delta, to: reply.id)
                     case let .toolCall(call):
                         calls.append(call)
@@ -130,11 +142,13 @@ final class ChatModel: ObservableObject {
                 }
             } catch {
                 errorText = error.localizedDescription
+                activity = nil
                 prune(reply.id)
                 return
             }
 
             guard !calls.isEmpty else {
+                activity = nil
                 prune(reply.id)
                 return
             }
@@ -161,6 +175,7 @@ final class ChatModel: ObservableObject {
         guard let tool = registry.tool(named: call.name) else {
             return ToolError.unknownTool(call.name).localizedDescription
         }
+        activity = tool.activityLabel
         if tool.risk == .mutating {
             guard await requestApproval(for: call) else {
                 return ToolError.declined(call.name).localizedDescription
@@ -192,6 +207,7 @@ final class ChatModel: ObservableObject {
         if approvalContinuation != nil { resolveApproval(allow: false) }
         streamTask?.cancel()
         streamTask = nil
+        activity = nil
         isStreaming = false
     }
 
@@ -258,6 +274,11 @@ enum Settings {
     static var speakReplies: Bool {
         get { defaults.object(forKey: "speakReplies") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "speakReplies") }
+    }
+
+    static var hasOnboarded: Bool {
+        get { defaults.bool(forKey: "hasOnboarded") }
+        set { defaults.set(newValue, forKey: "hasOnboarded") }
     }
 
     static var toolsEnabled: Bool {

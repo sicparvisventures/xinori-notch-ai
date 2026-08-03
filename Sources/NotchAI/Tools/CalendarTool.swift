@@ -7,6 +7,7 @@ import Foundation
 /// take tens of seconds. EventKit answers the same question in milliseconds and
 /// asks for consent properly.
 struct ListCalendarTool: Tool {
+    let activityLabel = "Bekijkt je agenda"
     let name = "list_calendar"
     let description = """
     Geeft afspraken uit de agenda voor een aantal dagen vooruit. \

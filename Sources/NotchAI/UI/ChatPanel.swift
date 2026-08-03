@@ -1,14 +1,19 @@
 import SwiftUI
 
 struct ChatPanel: View {
+    // Each of these has to be observed in its own right. Observing only
+    // `AppModel` and reaching through to `app.chat` silently drops every
+    // update: the nested objects publish to their own `objectWillChange`,
+    // which no view is subscribed to — so the panel only ever refreshed when
+    // it was rebuilt from scratch on reopen.
     @ObservedObject var app: AppModel
+    @ObservedObject var chat: ChatModel
+    @ObservedObject var transcriber: Transcriber
 
     @State private var draft = ""
     @State private var apiKeyDraft = ""
     @State private var needsKey = false
     @FocusState private var inputFocused: Bool
-
-    private var chat: ChatModel { app.chat }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -71,6 +76,8 @@ struct ChatPanel: View {
                 chat.reset()
                 app.speaker.stop()
             }
+
+            iconButton("gearshape.fill") { app.route = .settings }
         }
         .padding(.horizontal, 16)
         .padding(.bottom, 8)
@@ -114,7 +121,7 @@ struct ChatPanel: View {
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    if chat.messages.isEmpty && app.transcriber.transcript.isEmpty {
+                    if chat.messages.isEmpty && transcriber.transcript.isEmpty {
                         placeholder
                     }
 
@@ -124,24 +131,24 @@ struct ChatPanel: View {
 
                     // Between "sent" and the first token there is otherwise no
                     // sign the thing is alive — with a local model that gap can
-                    // be a second or two.
-                    if chat.isStreaming, chat.lastAssistantText == nil {
-                        ThinkingDots().id("thinking")
+                    // be a second or two, and a tool call much longer.
+                    if let activity = chat.activity {
+                        ThinkingIndicator(label: activity).id("activity")
                     }
 
                     // Live dictation sits below the conversation as a preview of
                     // what will be sent.
-                    if app.transcriber.isRecording {
+                    if transcriber.isRecording {
                         HStack(spacing: 6) {
-                            Text(app.transcriber.transcript.isEmpty
+                            Text(transcriber.transcript.isEmpty
                                  ? "Luisteren…"
-                                 : app.transcriber.transcript)
+                                 : transcriber.transcript)
                                 .font(.system(size: 13))
                                 .foregroundStyle(.white.opacity(0.5))
                             // Dutch falls back to a different engine and English
                             // falls back further still; say which, or a wrong
                             // language looks like a bug.
-                            if let locale = app.transcriber.activeLocale {
+                            if let locale = transcriber.activeLocale {
                                 Text(locale.identifier)
                                     .font(.system(size: 9, weight: .medium))
                                     .foregroundStyle(.white.opacity(0.3))
@@ -150,7 +157,7 @@ struct ChatPanel: View {
                         .id("dictation")
                     }
 
-                    if let error = chat.errorText ?? app.transcriber.errorText {
+                    if let error = chat.errorText ?? transcriber.errorText {
                         Text(error)
                             .font(.system(size: 11))
                             .foregroundStyle(.orange.opacity(0.9))
@@ -290,17 +297,17 @@ struct ChatPanel: View {
         HStack(spacing: 10) {
             Button {
                 Task {
-                    if app.transcriber.isRecording {
+                    if transcriber.isRecording {
                         await app.finishDictation()
                     } else {
                         app.speaker.stop()
-                        await app.transcriber.start()
+                        await transcriber.start()
                     }
                 }
             } label: {
-                Image(systemName: app.transcriber.isRecording ? "stop.fill" : "mic.fill")
+                Image(systemName: transcriber.isRecording ? "stop.fill" : "mic.fill")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(app.transcriber.isRecording ? .red : .white.opacity(0.65))
+                    .foregroundStyle(transcriber.isRecording ? .red : .white.opacity(0.65))
                     .frame(width: 26, height: 26)
                     .background(Color.white.opacity(0.08), in: Circle())
             }

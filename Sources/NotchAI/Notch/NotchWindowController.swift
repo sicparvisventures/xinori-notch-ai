@@ -36,20 +36,24 @@ final class NotchPanel: NSPanel {
         isMovableByWindowBackground = false
         hidesOnDeactivate = false
         acceptsMouseMovedEvents = true
-        ignoresMouseEvents = false
+
+        // Transparent to the mouse until the cursor is demonstrably over the
+        // notch. The window spans 560pt across the top of the screen; leaving
+        // it hit-testable would put an invisible sheet over that whole stretch
+        // of menu bar. See `NotchWindowController.pollCursor`.
+        ignoresMouseEvents = true
     }
 }
 
 // MARK: - Container
 
-/// Hosts the SwiftUI content and owns all mouse handling.
+/// Hosts the SwiftUI content and clips interaction to the visible shape.
 ///
-/// The window is sized for the *largest* state, so most of it is transparent.
-/// `hitTest` clips interaction to the currently visible shape, otherwise a
-/// 520×300 invisible rectangle would swallow clicks meant for the menu bar.
+/// This is a second line of defence behind `ignoresMouseEvents`: while the
+/// panel is open the window does accept events, and the transparent margins
+/// around the shape must still pass clicks through.
 final class NotchContainerView: NSView {
     private let model: NotchModel
-    private var trackingAreaRef: NSTrackingArea?
     private var forceClickHandled = false
 
     init(model: NotchModel) {
@@ -60,50 +64,12 @@ final class NotchContainerView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    // MARK: Hit testing
-
     override func hitTest(_ point: NSPoint) -> NSView? {
         // `point` arrives in our superview's space; as the content view that is
         // the window's space, which shares our origin.
         guard model.activeRect.contains(point) else { return nil }
         return super.hitTest(point)
     }
-
-    // MARK: Tracking
-
-    override func updateTrackingAreas() {
-        super.updateTrackingAreas()
-        if let existing = trackingAreaRef { removeTrackingArea(existing) }
-
-        // Deliberately not `.inVisibleRect`: the tracking rect must follow the
-        // shape, not the (much larger) window.
-        let area = NSTrackingArea(rect: model.activeRect,
-                                  options: [.mouseEnteredAndExited, .activeAlways],
-                                  owner: self,
-                                  userInfo: nil)
-        addTrackingArea(area)
-        trackingAreaRef = area
-    }
-
-    /// Call after any state change so the tracking rect matches the new shape.
-    func refreshTracking() {
-        needsDisplay = true
-        updateTrackingAreas()
-    }
-
-    override func mouseEntered(with event: NSEvent) {
-        model.setHovering(true)
-        refreshTracking()
-    }
-
-    override func mouseExited(with event: NSEvent) {
-        // While open the panel stays put — the user may be reading or typing.
-        // Closing is an explicit act: click the notch, click away, or Escape.
-        model.setHovering(false)
-        refreshTracking()
-    }
-
-    // MARK: Click
 
     override func mouseDown(with event: NSEvent) {
         forceClickHandled = false
@@ -116,7 +82,6 @@ final class NotchContainerView: NSView {
             return
         }
         model.toggle()
-        refreshTracking()
     }
 
     /// Force click (stage 2) fires the moment the trackpad registers the deeper
@@ -125,7 +90,6 @@ final class NotchContainerView: NSView {
         guard event.stage >= 2, !forceClickHandled else { return }
         forceClickHandled = true
         model.toggle()
-        refreshTracking()
     }
 }
 
@@ -140,6 +104,11 @@ final class NotchWindowController {
     private var cancellables = Set<AnyCancellable>()
     private var outsideClickMonitor: Any?
     private var escapeMonitor: Any?
+    private var cursorTimer: Timer?
+
+    /// How far outside the notch the cursor still counts as hovering. Without
+    /// slack the target is 32pt tall and effectively unhittable in a hurry.
+    private let hoverSlack = NSEdgeInsets(top: 0, left: 14, bottom: 6, right: 14)
 
     init(model: NotchModel, app: AppModel) {
         self.model = model
@@ -155,8 +124,6 @@ final class NotchWindowController {
         let hosting = NSHostingView(rootView: NotchRootView(model: model, app: app))
         hosting.frame = container.bounds
         hosting.autoresizingMask = [.width, .height]
-        // The hosting view must not intercept events outside the shape; the
-        // container's hitTest is the single gate for that.
         container.addSubview(hosting)
 
         panel.contentView = container
@@ -176,11 +143,50 @@ final class NotchWindowController {
     deinit {
         if let outsideClickMonitor { NSEvent.removeMonitor(outsideClickMonitor) }
         if let escapeMonitor { NSEvent.removeMonitor(escapeMonitor) }
+        cursorTimer?.invalidate()
     }
 
     func show() {
         panel.orderFrontRegardless()
-        container.refreshTracking()
+        startCursorTracking()
+    }
+
+    // MARK: - Hover
+
+    /// Polling rather than an `NSTrackingArea`.
+    ///
+    /// A tracking area only reports what the *window* receives, and the window
+    /// deliberately ignores the mouse while closed — so it would never see the
+    /// cursor arrive. Reading the global cursor position sidesteps that, and
+    /// needs no accessibility permission the way a global event monitor can.
+    private func startCursorTracking() {
+        let timer = Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+            MainActor.assumeIsolated { self?.pollCursor() }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        cursorTimer = timer
+    }
+
+    private func pollCursor() {
+        // While open the whole panel is live; hover only governs the closed and
+        // teased states.
+        guard model.state != .open else {
+            panel.ignoresMouseEvents = false
+            return
+        }
+
+        let inside = hoverRect.contains(NSEvent.mouseLocation)
+        panel.ignoresMouseEvents = !inside
+        model.setHovering(inside)
+    }
+
+    /// The notch itself, padded, in global screen coordinates.
+    private var hoverRect: NSRect {
+        let rect = model.geometry.rect
+        return NSRect(x: rect.minX - hoverSlack.left,
+                      y: rect.minY - hoverSlack.bottom,
+                      width: rect.width + hoverSlack.left + hoverSlack.right,
+                      height: rect.height + hoverSlack.bottom)
     }
 
     // MARK: - Focus
@@ -193,6 +199,7 @@ final class NotchWindowController {
                 let open = state == .open
                 self.panel.isKeyable = open
                 if open {
+                    self.panel.ignoresMouseEvents = false
                     // Key without activating: the frontmost app keeps its focus
                     // ring, we just take the keystrokes.
                     self.panel.makeKeyAndOrderFront(nil)
@@ -201,7 +208,6 @@ final class NotchWindowController {
                     // Never leave the mic hot or a reply talking to an empty notch.
                     Task { await self.app.standDown() }
                 }
-                self.container.refreshTracking()
             }
             .store(in: &cancellables)
     }
@@ -237,6 +243,5 @@ final class NotchWindowController {
         }
         panel.setFrame(NSRect(origin: model.windowOrigin, size: model.windowSize), display: true)
         panel.orderFrontRegardless()
-        container.refreshTracking()
     }
 }

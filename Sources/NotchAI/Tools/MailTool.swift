@@ -7,6 +7,7 @@ import Foundation
 /// every call fails with error -1743, which `Shell.osascript` turns into a
 /// readable message rather than a raw AppleScript code.
 struct ListMailTool: Tool {
+    let activityLabel = "Leest je mail"
     let name = "list_mail"
     let description = """
     Leest berichten uit de inbox van Mail.app: afzender, onderwerp en datum, \

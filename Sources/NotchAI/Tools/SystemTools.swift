@@ -3,6 +3,7 @@ import Foundation
 
 /// Battery, disk and memory. The questions you'd otherwise open three apps for.
 struct SystemInfoTool: Tool {
+    let activityLabel = "Kijkt naar je systeem"
     let name = "system_info"
     let description = """
     Geeft actuele systeeminformatie van deze Mac: batterij, schijfruimte, geheugen \
@@ -43,6 +44,7 @@ struct SystemInfoTool: Tool {
 /// Spotlight search. Far faster than walking the filesystem, and it already
 /// knows about file contents.
 struct SearchFilesTool: Tool {
+    let activityLabel = "Zoekt in je bestanden"
     let name = "search_files"
     let description = """
     Zoekt bestanden op deze Mac via Spotlight, op naam of op inhoud. \
@@ -74,6 +76,7 @@ struct SearchFilesTool: Tool {
 /// What the user is actually looking at — lets the model answer "wat staat er
 /// nu open" and reason about context without a screenshot.
 struct FrontmostAppTool: Tool {
+    let activityLabel = "Kijkt wat er open staat"
     let name = "frontmost_app"
     let description = "Geeft de app die nu op de voorgrond staat en de titel van het actieve venster."
     let risk = ToolRisk.readOnly
