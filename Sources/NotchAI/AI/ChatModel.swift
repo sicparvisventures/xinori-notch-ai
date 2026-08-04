@@ -341,6 +341,14 @@ enum Settings {
         set { defaults.set(newValue, forKey: "hasOnboarded") }
     }
 
+    /// Force the floating pill even on a Mac that has a notch. Some people
+    /// prefer it, and it is the only way to exercise the fallback without a
+    /// second machine.
+    static var preferPill: Bool {
+        get { defaults.bool(forKey: "preferPill") }
+        set { defaults.set(newValue, forKey: "preferPill") }
+    }
+
     static var orchestrationEnabled: Bool {
         get { defaults.object(forKey: "orchestrationEnabled") as? Bool ?? true }
         set { defaults.set(newValue, forKey: "orchestrationEnabled") }

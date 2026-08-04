@@ -16,14 +16,23 @@ struct NotchRootView: View {
         }
     }
 
+    /// A notch blends into hardware and needs the concave shoulders; a pill has
+    /// nothing to blend into, so it is rounded all round.
+    private var shape: AnyShape {
+        switch model.placement.style {
+        case .notch:
+            return AnyShape(NotchShape(topRadius: topRadius, bottomRadius: bottomRadius))
+        case .pill:
+            return AnyShape(RoundedRectangle(cornerRadius: model.state == .open ? 18 : 13,
+                                             style: .continuous))
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .top) {
-            NotchShape(topRadius: topRadius, bottomRadius: bottomRadius)
+            shape
                 .fill(.black)
-                .overlay {
-                    NotchShape(topRadius: topRadius, bottomRadius: bottomRadius)
-                        .stroke(Color.white.opacity(model.state == .open ? 0.09 : 0), lineWidth: 1)
-                }
+                .overlay { shape.stroke(Color.white.opacity(model.state == .open ? 0.09 : 0), lineWidth: 1) }
                 .shadow(color: .black.opacity(model.state == .open ? 0.5 : 0), radius: 24, y: 8)
                 .frame(width: size.width, height: size.height)
                 .overlay {

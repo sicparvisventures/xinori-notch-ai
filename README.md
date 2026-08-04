@@ -19,6 +19,7 @@ capability.
 | **Talks and listens** | On-device speech-to-text (`SpeechAnalyzer` / `DictationTranscriber`), spoken replies via `AVSpeechSynthesizer`. Nothing is uploaded. |
 | **Reaches into your Mac** | Tool calling: it reads your inbox, checks the calendar, finds files, lists and creates scheduled jobs, runs shell commands. |
 | **Asks before it acts** | Read-only tools run freely. Anything that changes state stops and shows you the exact call for approval. |
+| **Runs anywhere** | With a notch it *is* the notch; without one it becomes a floating pill under the menu bar. Same window, same behaviour, different corners. |
 | **Sets itself up** | First launch walks you through installing Ollama and pulling a model, with a real progress bar. Settings live in the notch too — no separate preferences window. |
 
 ## Requirements
@@ -257,8 +258,9 @@ Match against `supportedLocales` instead.
 ## Known limitations
 
 - **Not notarized.** See the first-launch note above.
-- **External displays.** Without a notch (`safeAreaInsets.top == 0`) the app
-  exits. A floating-pill fallback is not built yet.
+- **Sequential specialists.** They run one after another, not in parallel: the
+  approval gate is a single queue and two specialists asking at once would
+  clobber each other. Parallel is possible later for read-only specialists.
 - **Default model IDs for OpenAI and Moonshot are guesses.** The picker fetches
   the real list from each provider once a key is set, and corrects itself.
 - **Now Playing is not built.** `MediaRemote`'s read path does still work on

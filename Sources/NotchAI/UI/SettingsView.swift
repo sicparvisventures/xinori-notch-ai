@@ -112,6 +112,13 @@ struct SettingsView: View {
                 }
             }
             Divider().overlay(Panel.hairline)
+            SettingRow(title: "Zwevende pill",
+                       subtitle: "In plaats van in de notch. Vereist herstart.") {
+                PanelToggle(isOn: Binding(
+                    get: { Settings.preferPill },
+                    set: { Settings.preferPill = $0 }))
+            }
+            Divider().overlay(Panel.hairline)
             SettingRow(title: "Antwoord voorlezen",
                        subtitle: "Spreekt het antwoord uit zodra het klaar is") {
                 PanelToggle(isOn: $app.speakReplies)

@@ -14,10 +14,10 @@ final class NotchModel: ObservableObject {
     @Published private(set) var state: NotchState = .closed
 
     /// Measured once at launch; the window is sized from this.
-    let geometry: NotchGeometry
+    let placement: Placement
 
-    init(geometry: NotchGeometry) {
-        self.geometry = geometry
+    init(placement: Placement) {
+        self.placement = placement
     }
 
     // MARK: - Transitions
@@ -57,11 +57,11 @@ final class NotchModel: ObservableObject {
     var currentSize: CGSize {
         switch state {
         case .closed:
-            return geometry.size
+            return placement.size
         case .hover:
             // Just enough growth to read as "alive" without covering menu bar items.
-            return CGSize(width: geometry.size.width + 24,
-                          height: geometry.size.height + 6)
+            return CGSize(width: placement.size.width + 24,
+                          height: placement.size.height + 6)
         case .open:
             return openSize
         }
@@ -70,7 +70,7 @@ final class NotchModel: ObservableObject {
     /// Window size must fit the largest state; the rest is transparent and
     /// click-through (see `NotchContainerView.hitTest`).
     var windowSize: CGSize {
-        CGSize(width: max(openSize.width, geometry.size.width) + Self.margin * 2,
+        CGSize(width: max(openSize.width, placement.size.width) + Self.margin * 2,
                height: openSize.height + Self.margin)
     }
 
@@ -78,8 +78,10 @@ final class NotchModel: ObservableObject {
     /// on the real notch, flush against the top of the screen.
     var windowOrigin: CGPoint {
         let size = windowSize
-        return CGPoint(x: geometry.rect.midX - size.width / 2,
-                       y: geometry.screen.frame.maxY - size.height)
+        // The window's top edge sits where the resting shape's top edge sits:
+        // the screen edge for a notch, just under the menu bar for a pill.
+        return CGPoint(x: placement.rect.midX - size.width / 2,
+                       y: placement.rect.maxY - size.height)
     }
 
     /// Interactive area in window coordinates (bottom-left origin), i.e. the

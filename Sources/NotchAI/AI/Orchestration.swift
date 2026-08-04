@@ -48,6 +48,7 @@ extension ChatModel {
             }
 
             history.append(ChatMessage(role: .assistant, text: text, toolCalls: calls))
+            let outputsBefore = used.count
             for call in calls {
                 used.append(call.name)
                 updateStep(step, detail: used.joined(separator: ", "))
@@ -58,6 +59,19 @@ extension ChatModel {
                 lastOutput = output
                 history.append(ChatMessage(role: .tool, text: output,
                                            toolName: call.name, toolCallID: call.id))
+            }
+
+            // Short answer from a single tool: hand it straight back.
+            //
+            // The summarising round is the expensive part — a 4B model spent
+            // 43 seconds narrating a nine-item list before we discarded the
+            // narration anyway. When one tool already produced something small
+            // and readable, another model round adds latency and a chance to
+            // hallucinate, and subtracts nothing.
+            if calls.count == 1, used.count == outputsBefore + 1,
+               lastOutput.count <= 800, !lastOutput.hasPrefix("Fout:") {
+                finishStep(step, detail: used.joined(separator: ", "), state: .done)
+                return lastOutput
             }
         }
 

@@ -182,7 +182,7 @@ final class NotchWindowController {
 
     /// The notch itself, padded, in global screen coordinates.
     private var hoverRect: NSRect {
-        let rect = model.geometry.rect
+        let rect = model.placement.rect
         return NSRect(x: rect.minX - hoverSlack.left,
                       y: rect.minY - hoverSlack.bottom,
                       width: rect.width + hoverSlack.left + hoverSlack.right,
@@ -236,8 +236,8 @@ final class NotchWindowController {
     /// Re-seat the panel after a display change (docking, resolution switch,
     /// closing the lid). If the notched screen disappears we simply hide.
     private func reposition() {
-        guard let geometry = NotchGeometry.current(),
-              geometry.size == model.geometry.size else {
+        guard let placement = Placement.current(),
+              placement.size == model.placement.size else {
             panel.orderOut(nil)
             return
         }

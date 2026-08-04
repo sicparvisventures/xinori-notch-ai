@@ -6,17 +6,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var app: AppModel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        guard let geometry = NotchGeometry.current() else {
-            FileHandle.standardError.write(Data(
-                "NotchAI: no notched built-in display found — nothing to attach to.\n".utf8))
+        guard let placement = Placement.current() else {
+            Log.write("no usable screen found — nothing to attach to.")
             NSApp.terminate(nil)
             return
         }
+        Log.write(placement.describedForLog)
 
-        FileHandle.standardError.write(Data(
-            "NotchAI: notch \(Int(geometry.size.width))×\(Int(geometry.size.height))pt at \(geometry.rect)\n".utf8))
-
-        let notch = NotchModel(geometry: geometry)
+        let notch = NotchModel(placement: placement)
         let app = AppModel()
         let controller = NotchWindowController(model: notch, app: app)
         controller.show()

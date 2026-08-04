@@ -486,12 +486,12 @@ niets naast chat en geheugen.
 **Klaar wanneer:** "vat mijn mail samen en zet de deadlines in mijn agenda" raakt
 twee specialisten parallel, en "hoeveel batterij" gaat nog steeds in één beurt.
 
-### Fase C — de app als burger van je systeem (deels gebouwd)
+### Fase C — de app als burger van je systeem ✅ gebouwd
 
 16. ✅ `NSStatusItem` met dropdown: status, snelle acties, instellingen, afsluiten
-17. `Placement`-abstractie: pill-fallback zonder notch
-18. Toestemmingen per bron in onboarding, met uitleg per stuk
-19. Sneltoets (⌥Space) om het paneel te openen
+17. ✅ `Placement`-abstractie: pill-fallback zonder notch, plus een schakelaar om hem ook mét notch te kiezen
+18. Toestemmingen per bron in onboarding, met uitleg per stuk — *nog open*
+19. Sneltoets (⌥Space) om het paneel te openen — *nog open*
 
 **Klaar wanneer:** de app draait op een Mac mini en je kunt hem afsluiten zonder
 Terminal.
