@@ -13,28 +13,6 @@ import Foundation
 let midnight = CGColor(red: 0.059, green: 0.071, blue: 0.098, alpha: 1)   // #0F1219
 let ink = CGColor(red: 1, green: 1, blue: 1, alpha: 1)
 
-/// The notch silhouette: flat against the top, rounded below, with the two
-/// concave shoulders that make it read as a notch rather than a tab.
-func notchPath(in rect: CGRect, shoulder: CGFloat, bottom: CGFloat) -> CGPath {
-    let path = CGMutablePath()
-    let top = rect.maxY
-
-    path.move(to: CGPoint(x: rect.minX - shoulder, y: top))
-    path.addQuadCurve(to: CGPoint(x: rect.minX, y: top - shoulder),
-                      control: CGPoint(x: rect.minX, y: top))
-    path.addLine(to: CGPoint(x: rect.minX, y: rect.minY + bottom))
-    path.addQuadCurve(to: CGPoint(x: rect.minX + bottom, y: rect.minY),
-                      control: CGPoint(x: rect.minX, y: rect.minY))
-    path.addLine(to: CGPoint(x: rect.maxX - bottom, y: rect.minY))
-    path.addQuadCurve(to: CGPoint(x: rect.maxX, y: rect.minY + bottom),
-                      control: CGPoint(x: rect.maxX, y: rect.minY))
-    path.addLine(to: CGPoint(x: rect.maxX, y: top - shoulder))
-    path.addQuadCurve(to: CGPoint(x: rect.maxX + shoulder, y: top),
-                      control: CGPoint(x: rect.maxX, y: top))
-    path.closeSubpath()
-    return path
-}
-
 func drawIcon(size: CGFloat) -> CGImage? {
     let scale = size / 1024
     guard let context = CGContext(
@@ -51,52 +29,49 @@ func drawIcon(size: CGFloat) -> CGImage? {
     // app look oversized next to every system icon in the Dock.
     let inset = 92 * scale
     let tile = CGRect(x: inset, y: inset, width: size - inset * 2, height: size - inset * 2)
-    let tileRadius = tile.width * 0.22
 
-    context.addPath(CGPath(roundedRect: tile, cornerWidth: tileRadius,
-                           cornerHeight: tileRadius, transform: nil))
-    context.setFillColor(midnight)
-    context.fillPath()
-
-    // Two elements: the notch itself flush against the top edge, and the
-    // panel it springs into, floating below it.
+    // Light tile, dark mark — the inverse of the earlier drafts.
     //
-    // The panel must NOT touch the top edge. A light shape flush with the edge
-    // of a dark tile inverts figure and ground — you start reading the leftover
-    // midnight as two ears and the whole mark becomes a box. A clear band of
-    // midnight above the panel keeps the light shape as the subject.
-    let nubWidth = tile.width * 0.26
-    let nubHeight = tile.height * 0.055
-    let nub = CGRect(x: tile.midX - nubWidth / 2,
-                     y: tile.maxY - nubHeight,
-                     width: nubWidth, height: nubHeight)
-    context.addPath(CGPath(roundedRect: nub,
-                           cornerWidth: nubHeight * 0.55,
-                           cornerHeight: nubHeight * 0.55, transform: nil))
-    context.setFillColor(ink)
-    context.setAlpha(0.32)
-    context.fillPath()
-    context.setAlpha(1)
-
-    let panelWidth = tile.width * 0.60
-    let panelHeight = tile.height * 0.36
-    let panel = CGRect(x: tile.midX - panelWidth / 2,
-                       y: tile.maxY - nubHeight - tile.height * 0.07 - panelHeight,
-                       width: panelWidth, height: panelHeight)
-    context.addPath(CGPath(roundedRect: panel,
-                           cornerWidth: panelWidth * 0.17,
-                           cornerHeight: panelWidth * 0.17, transform: nil))
+    // On screen the notch is a *dark shape on a bright display*, and drawing it
+    // that way is both truthful and legible: a dark subject on a light field
+    // reads as the figure, where a light card on a midnight tile kept reading
+    // as a box with ears.
+    context.addPath(CGPath(roundedRect: tile, cornerWidth: tile.width * 0.22,
+                           cornerHeight: tile.width * 0.22, transform: nil))
     context.setFillColor(ink)
     context.fillPath()
 
-    // Two bars in midnight — never `.clear`, which would punch through the
-    // tile as well and leave the bars invisible against a light background.
-    let barHeight = panel.height * 0.135
-    let barGap = panel.height * 0.165
-    let left = panel.minX + panel.width * 0.17
     context.setFillColor(midnight)
-    for (index, factor) in [CGFloat(0.66), CGFloat(0.40)].enumerated() {
-        let y = panel.minY + panel.height * 0.26 + CGFloat(1 - index) * (barHeight + barGap)
+
+    // The mark is one silhouette in two parts: the notch flush with the top
+    // edge, flaring into the panel it springs into. Drawn as two overlapping
+    // rounded rects — their union is the shape, and it stays crisp at 16pt
+    // where a hand-built path with fillets turns to mush.
+    let notchWidth = tile.width * 0.26
+    let notchBottom = tile.maxY - tile.height * 0.15
+    let notch = CGRect(x: tile.midX - notchWidth / 2, y: notchBottom,
+                       width: notchWidth, height: tile.maxY - notchBottom)
+    context.addPath(CGPath(roundedRect: notch, cornerWidth: notchWidth * 0.22,
+                           cornerHeight: notchWidth * 0.22, transform: nil))
+    context.fillPath()
+
+    let panelWidth = tile.width * 0.68
+    let panelTop = tile.maxY - tile.height * 0.11       // overlaps the notch
+    let panelHeight = tile.height * 0.56
+    let panel = CGRect(x: tile.midX - panelWidth / 2, y: panelTop - panelHeight,
+                       width: panelWidth, height: panelHeight)
+    context.addPath(CGPath(roundedRect: panel, cornerWidth: panelWidth * 0.19,
+                           cornerHeight: panelWidth * 0.19, transform: nil))
+    context.fillPath()
+
+    // Two light bars inside the panel: the answer coming back. They also stop
+    // the panel from reading as a solid slab.
+    let barHeight = panel.height * 0.135
+    let barGap = panel.height * 0.16
+    let left = panel.minX + panel.width * 0.18
+    context.setFillColor(ink)
+    for (index, factor) in [CGFloat(0.64), CGFloat(0.40)].enumerated() {
+        let y = panel.minY + panel.height * 0.24 + CGFloat(1 - index) * (barHeight + barGap)
         let bar = CGRect(x: left, y: y, width: panel.width * factor, height: barHeight)
         context.addPath(CGPath(roundedRect: bar, cornerWidth: barHeight / 2,
                                cornerHeight: barHeight / 2, transform: nil))

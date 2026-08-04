@@ -121,6 +121,45 @@ section{padding:52px 0;border-bottom:1px solid var(--line)}
 .graph svg{width:100%;height:100%}
 .gnode{font-family:var(--font-body);font-size:10.5px;font-weight:600}
 
+
+/* ── Orchestration ────────────────────────────────────────────────── */
+.lane{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center;
+  padding:15px 0;border-bottom:1px solid var(--cloud)}
+.lane:last-child{border-bottom:0}
+.lane .tag{font-family:var(--font-mono);font-size:9px;letter-spacing:.08em;
+  text-transform:uppercase;padding:4px 8px;border-radius:var(--ctl);text-align:center}
+.t-fast{background:var(--green-light);color:var(--green-dark)}
+.t-mid{background:var(--ice);color:var(--muted)}
+.t-full{background:hsl(38 92% 50% / .14);color:var(--amber-ink)}
+.lane .flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.node{background:var(--white);border:1px solid var(--line);border-radius:var(--ctl);
+  padding:6px 11px;font-size:11.5px;white-space:nowrap}
+.node.dark{background:var(--midnight);color:#fff;border-color:var(--midnight)}
+.node .m{font-family:var(--font-mono);font-size:8.5px;opacity:.6;display:block}
+.arrow{color:var(--slate);font-size:12px}
+.lane .ex{font-size:11.5px;color:var(--muted);margin-top:6px;width:100%}
+.fan{display:flex;gap:8px;flex-wrap:wrap}
+.spec{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:12px 14px;flex:1;min-width:150px}
+.spec .sn{font-family:var(--font-mono);font-size:11px;font-weight:700;margin-bottom:4px}
+.spec .st{font-size:10.5px;color:var(--muted);line-height:1.45}
+.spec .sm{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--slate);margin-top:7px;display:block}
+.trace{background:#05070b;border:1px solid rgba(255,255,255,.10);border-radius:16px;
+  padding:15px;color:#fff}
+.trace .th{font-family:var(--font-display);font-size:12px;font-weight:700;margin-bottom:11px;
+  display:flex;align-items:center;gap:7px}
+.trace .th .el{margin-left:auto;font-family:var(--font-mono);font-size:9px;
+  color:rgba(255,255,255,.38)}
+.tl2{border-left:1px solid rgba(255,255,255,.14);padding-left:13px;margin-left:4px}
+.tstep{position:relative;padding:6px 0}
+.tstep::before{content:"";position:absolute;left:-17px;top:12px;width:6px;height:6px;
+  border-radius:999px;background:rgba(255,255,255,.4)}
+.tstep.done::before{background:var(--green)}
+.tstep .tn{font-size:11.5px;color:rgba(255,255,255,.9)}
+.tstep .td{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.4);
+  margin-top:2px}
+
 /* ── Tables ───────────────────────────────────────────────────────── */
 .table{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
   overflow:hidden}
@@ -158,9 +197,9 @@ footer{padding:26px 0;font-size:12px;color:var(--muted)}
 <header>
   <div class="wrap">
     <p class="eyebrow">Mockup · bij ANALYSE.md</p>
-    <h1>Vier voorstellen, getekend</h1>
-    <p>Menubalk-aanwezigheid, de pill voor Macs zonder notch, het second brain in
-      het paneel, en waar de toolset heen groeit. Alles hieronder is een voorstel —
+    <h1>Vijf voorstellen, getekend</h1>
+    <p>Menubalk-aanwezigheid, de pill voor Macs zonder notch, het second brain, waar de
+      toolset heen groeit, en hoe de orchestrator specialisten aanstuurt. Alles hieronder is een voorstel —
       niets ervan is gebouwd.</p>
   </div>
 </header>
@@ -435,6 +474,128 @@ footer{padding:26px 0;font-size:12px;color:var(--muted)}
   </div>
 </section>
 
+
+<!-- ══ 5. Orkestratie ══ -->
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Voorstel 5</p>
+      <h2>Niet alle tools aan één model</h2>
+      <p>Met zesentwintig tools is "geef alles mee" geen optie meer — niet omdat het
+        niet past, maar omdat de keuze verslechtert. De orchestrator ziet daarom zes
+        domeinen in plaats van dertig tools, en delegeert alleen als het nodig is.</p>
+    </div>
+
+    <div class="card" style="padding:6px 20px;margin-bottom:22px">
+      <div class="lane">
+        <span class="tag t-fast">Direct</span>
+        <div>
+          <div class="flow">
+            <span class="node dark">Router<span class="m">qwen3:4b</span></span>
+            <span class="arrow">→</span>
+            <span class="node">Antwoord</span>
+          </div>
+          <p class="ex">"Wat is 12% van 4500?" — geen tool nodig, één beurt.</p>
+        </div>
+      </div>
+      <div class="lane">
+        <span class="tag t-mid">Enkelvoudig</span>
+        <div>
+          <div class="flow">
+            <span class="node dark">Orchestrator<span class="m">qwen3:8b</span></span>
+            <span class="arrow">→</span>
+            <span class="node">systeem-domein</span>
+            <span class="arrow">→</span>
+            <span class="node">Antwoord</span>
+          </div>
+          <p class="ex">"Hoeveel batterij heb ik?" — één domein, geen subagent nodig.</p>
+        </div>
+      </div>
+      <div class="lane">
+        <span class="tag t-full">Gedelegeerd</span>
+        <div>
+          <div class="flow">
+            <span class="node dark">Orchestrator<span class="m">qwen3:8b</span></span>
+            <span class="arrow">→</span>
+            <span class="node">mail<span class="m">qwen3:4b</span></span>
+            <span class="node">agenda<span class="m">qwen3:4b</span></span>
+            <span class="arrow">→</span>
+            <span class="node dark">Samenvatten</span>
+          </div>
+          <p class="ex">"Vat mijn mail samen en zet de deadlines in mijn agenda" —
+            twee specialisten parallel, elk met eigen prompt en eigen tools.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="eyebrow" style="margin-bottom:10px">De zes specialisten</p>
+    <div class="fan" style="margin-bottom:22px">
+      <div class="spec"><p class="sn">mail</p>
+        <p class="st">list_mail, search_messages, compose_mail</p><span class="sm">Snel · 4B</span></div>
+      <div class="spec"><p class="sn">agenda</p>
+        <p class="st">list_calendar, create_event, reminders</p><span class="sm">Snel · 4B</span></div>
+      <div class="spec"><p class="sn">bestanden</p>
+        <p class="st">search_files, read_file, read_spreadsheet, write_file</p><span class="sm">Snel · 4B</span></div>
+      <div class="spec"><p class="sn">systeem</p>
+        <p class="st">system_info, list_apps, schedule_job, run_shell</p><span class="sm">Midden · 8B</span></div>
+      <div class="spec"><p class="sn">geheugen</p>
+        <p class="st">search_memory, search_notes, remember</p><span class="sm">Midden · 8B</span></div>
+      <div class="spec"><p class="sn">shortcuts</p>
+        <p class="st">list_shortcuts, run_shortcut</p><span class="sm">Snel · 4B</span></div>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="trace">
+          <div class="th">Uitvoering <span class="el">4,2 s</span></div>
+          <div class="tl2">
+            <div class="tstep done"><p class="tn">Orchestrator → 2 specialisten</p>
+              <p class="td">qwen3:8b · 0,6 s</p></div>
+            <div class="tstep done"><p class="tn">mail — 4 ongelezen, 1 met deadline</p>
+              <p class="td">list_mail · qwen3:4b · 1,4 s</p></div>
+            <div class="tstep done"><p class="tn">agenda — 3 afspraken vandaag</p>
+              <p class="td">list_calendar · qwen3:4b · 0,9 s</p></div>
+            <div class="tstep"><p class="tn">Samenvatten</p>
+              <p class="td">qwen3:8b · bezig…</p></div>
+          </div>
+        </div>
+        <p class="cap"><b>De trace is geen luxe.</b> Zonder inzicht in welke specialist
+          wat deed, is een gedelegeerd antwoord een zwarte doos en is een fout niet te
+          vinden. Uitklapbaar, standaard dicht.</p>
+      </div>
+
+      <div class="three" style="grid-template-columns:1fr;gap:14px">
+        <div class="card">
+          <h3>Waarom geen vector-zoekactie over tools</h3>
+          <p>De voor de hand liggende aanpak — embed alle toolbeschrijvingen, haal de
+            top-5 op — werkt slechter dan het klinkt. De ACL-2025-paper
+            <em>Retrieval Models Aren't Tool-Savvy</em> laat zien dat generieke
+            IR-modellen structureel ondermaats presteren op tool-retrieval: ze zijn
+            getraind op documenten, niet op API-beschrijvingen. Domeinen kiezen is
+            een makkelijkere vraag dan tools rangschikken.</p>
+        </div>
+        <div class="card">
+          <h3>Specialisten geven samenvattingen, geen ruwe uitvoer</h3>
+          <p>Maximaal ~1.500 tekens terug naar de orchestrator. Anders verplaats je het
+            contextprobleem alleen maar: 31.559 mailregels in de subagent is prima,
+            diezelfde regels teruggeven is dat niet.</p>
+        </div>
+        <div class="card">
+          <h3>Modellen per rol instelbaar</h3>
+          <p>Het dure model doet het denkwerk, de goedkope het graafwerk. Met een
+            Anthropic-sleutel kan de orchestrator op <code>claude-opus-5</code> terwijl
+            de specialisten lokaal blijven — je mail gaat dan nooit naar de cloud.</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="note"><b>De keerzijde, eerlijk:</b> een gedelegeerde vraag is minimaal
+      drie modelaanroepen waar het er nu één is, en een specialist die zijn taak
+      verkeerd begrijpt faalt stiller dan een tool die een fout teruggeeft. Daarom
+      staat de directe route bovenaan — de meeste vragen horen geen orkestratie te raken.</p>
+  </div>
+</section>
+
 <!-- ══ Plan ══ -->
 <section style="border-bottom:0">
   <div class="wrap">
@@ -448,22 +609,24 @@ footer{padding:26px 0;font-size:12px;color:var(--muted)}
     <div class="card" style="padding:6px 20px">
       <div class="phase"><span class="lab">Fase A</span>
         <span class="d">Bereik — notities, berichten, herinneringen, contacten,
-          Shortcuts, klembord, browsergeschiedenis</span><span class="cost">1–2 dagen</span></div>
+          Shortcuts, klembord, browsergeschiedenis (16 → 26 tools)</span><span class="cost">1–2 dagen</span></div>
       <div class="phase"><span class="lab">Fase B</span>
-        <span class="d">Menubalk-statusitem, pill-fallback zonder notch, toestemmingen
-          per bron in onboarding</span><span class="cost">1 dag</span></div>
+        <span class="d">Orchestrator, zes specialisten, drie snelheden, modelrollen,
+          trace</span><span class="cost">2–3 dagen</span></div>
       <div class="phase"><span class="lab">Fase C</span>
+        <span class="d">Menubalk-statusitem, pill-fallback, toestemmingen per bron,
+          sneltoets</span><span class="cost">1 dag</span></div>
+      <div class="phase"><span class="lab">Fase D</span>
         <span class="d">Geheugen: FTS5-index, opt-in per bron, embeddings via Ollama,
           <code>remember</code></span><span class="cost">3–5 dagen</span></div>
-      <div class="phase"><span class="lab">Fase D</span>
-        <span class="d">Pas als C tekortschiet: graph, schermafbeeldingen met vision,
-          Accessibility-besturing</span><span class="cost">open</span></div>
+      <div class="phase"><span class="lab">Fase E</span>
+        <span class="d">Pas als D tekortschiet: graph, schermafbeeldingen, Accessibility</span><span class="cost">open</span></div>
     </div>
 
-    <p class="note">Mijn advies: <b>A en B, en dan kijken.</b> Samen drie dagen, en het
-      verandert het karakter van de app — van een chatvenster dat een paar dingen opzoekt
-      naar iets dat je Mac kent. Het geheugen uit fase C is duurder en levert pas op als
-      je de app dagelijks gebruikt, en dat weet je pas ná A en B.</p>
+    <p class="note">Mijn advies: <b>A en B als één verandering.</b> Fase A alleen maakt het
+      erger voordat het beter wordt — zesentwintig tools zonder routering betekent
+      slechtere toolkeuze dan nu. Ze horen bij elkaar, niet achter elkaar. Fase C is
+      één dag en verdubbelt de doelgroep. Fase D pas als je de app dagelijks gebruikt.</p>
   </div>
 </section>
 
