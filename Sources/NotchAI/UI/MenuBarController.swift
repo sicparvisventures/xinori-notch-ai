@@ -28,11 +28,17 @@ final class MenuBarController {
 
         popover.behavior = .transient            // click away to dismiss
         popover.animates = true
-        popover.contentSize = NSSize(width: 260, height: 10)
-        popover.contentViewController = NSHostingController(
+
+        // Let the SwiftUI content own the size rather than guessing a
+        // `contentSize` here. (The guess was mostly harmless — the hosting
+        // controller's intrinsic size won anyway — but stating a wrong number
+        // and relying on it being ignored is not a plan.)
+        let controller = NSHostingController(
             rootView: MenuBarMenu(app: app, chat: app.chat, ollama: app.ollama,
                                   notch: notch, dismiss: { [weak self] in self?.popover.close() })
         )
+        controller.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = controller
     }
 
     @objc private func toggle() {
@@ -41,7 +47,11 @@ final class MenuBarController {
         } else if let button = statusItem.button {
             // Refresh before showing: the status line is the point of this menu.
             Task { await app.ollama.refresh() }
-            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .maxY)
+            // This is the one that mattered: `.maxY` puts the popover *above*
+            // the status item, and the status item is already at the top of the
+            // screen — so it landed off-screen and read as the menu jumping up
+            // into nothing. `.minY` hangs it below, where a menu belongs.
+            popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
         }
     }
