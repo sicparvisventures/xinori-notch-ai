@@ -2,6 +2,7 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: NotchWindowController?
+    private var menuBar: MenuBarController?
     private var app: AppModel?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -20,6 +21,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let controller = NotchWindowController(model: notch, app: app)
         controller.show()
 
+        // The menu bar is the app's only handle when the panel misbehaves —
+        // and the only way to quit without reaching for Terminal.
+        self.menuBar = MenuBarController(app: app, notch: notch)
         self.app = app
         self.controller = controller
     }
@@ -84,6 +88,12 @@ if let index = CommandLine.arguments.firstIndex(of: "--ask"),
             let suffix = calls.isEmpty ? "" : "  [\(calls)]"
             let body = message.text.replacingOccurrences(of: "\n", with: " ⏎ ")
             print("\(message.role.rawValue): \(body.prefix(400))\(suffix)")
+        }
+        if !chat.trace.isEmpty {
+            print("--- trace ---")
+            for step in chat.trace {
+                print("  \(step.label): \(step.detail) [\(step.durationText)]")
+            }
         }
         if let error = chat.errorText { print("error: \(error)") }
         exit(0)

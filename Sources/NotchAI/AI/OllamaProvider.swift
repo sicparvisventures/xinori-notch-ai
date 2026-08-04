@@ -39,6 +39,11 @@ struct OllamaProvider: LLMProvider {
                         "stream": true,
                         "think": false,
                         "keep_alive": -1,
+                        // Without a ceiling a model that starts repeating streams
+                        // forever, and the reply string grows without bound —
+                        // observed as the app climbing into hundreds of GB of
+                        // memory. Ollama has no default limit of its own.
+                        "options": ["num_predict": 2048],
                     ]
                     if !tools.isEmpty {
                         body["tools"] = tools.map { schema in

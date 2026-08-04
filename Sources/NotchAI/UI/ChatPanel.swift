@@ -128,6 +128,10 @@ struct ChatPanel: View {
                     // Between "sent" and the first token there is otherwise no
                     // sign the thing is alive — with a local model that gap can
                     // be a second or two, and a tool call much longer.
+                    if !chat.trace.isEmpty {
+                        TraceView(steps: chat.trace).id("trace")
+                    }
+
                     if let activity = chat.activity {
                         ThinkingIndicator(label: activity).id("activity")
                     }
@@ -174,6 +178,7 @@ struct ChatPanel: View {
             .onChange(of: chat.messages.count) { _, _ in scrollToBottom(proxy) }
             .onChange(of: chat.messages.last?.text) { _, _ in scrollToBottom(proxy) }
             .onChange(of: chat.activity) { _, _ in scrollToBottom(proxy) }
+            .onChange(of: chat.trace.count) { _, _ in scrollToBottom(proxy) }
             .onChange(of: transcriber.transcript) { _, _ in scrollToBottom(proxy) }
             .onAppear { scrollToBottom(proxy, animated: false) }
         }

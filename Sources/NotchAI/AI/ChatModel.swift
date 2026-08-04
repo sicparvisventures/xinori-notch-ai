@@ -16,6 +16,13 @@ final class ChatModel: ObservableObject {
     /// `nil` once tokens start arriving — the text itself is the signal then.
     @Published private(set) var activity: String?
 
+    /// Live execution trace: which specialist ran, with which tools, how long.
+    @Published private(set) var trace: [TraceStep] = []
+
+    @Published var orchestrationEnabled: Bool {
+        didSet { Settings.orchestrationEnabled = orchestrationEnabled }
+    }
+
     @Published var toolsEnabled: Bool {
         didSet { Settings.toolsEnabled = toolsEnabled }
     }
@@ -42,7 +49,7 @@ final class ChatModel: ObservableObject {
     /// stop. Without a ceiling a confused model can loop indefinitely.
     private let maxToolRounds = 6
 
-    private var systemPrompt: ChatMessage {
+    var systemPrompt: ChatMessage {
         ChatMessage(role: .system, text: """
         Je bent een assistent die vanuit de notch van een MacBook antwoordt en \
         toegang heeft tot deze Mac via tools.
@@ -69,6 +76,7 @@ final class ChatModel: ObservableObject {
         providerID = stored
         model = Settings.model(for: stored) ?? ProviderRegistry.provider(for: stored).defaultModel
         toolsEnabled = Settings.toolsEnabled
+        orchestrationEnabled = Settings.orchestrationEnabled
         Task { await refreshModels() }
     }
 
@@ -108,7 +116,15 @@ final class ChatModel: ObservableObject {
 
         let provider = self.provider
         let model = self.model
-        let tools = toolsEnabled ? ToolRegistry.shared.schemas : []
+        let tools: [ToolSchema]
+        if !toolsEnabled {
+            tools = []
+        } else if orchestrationEnabled {
+            tools = ToolDomain.allCases.map(\.delegateSchema)
+        } else {
+            tools = ToolRegistry.shared.schemas
+        }
+        trace.removeAll()
 
         streamTask = Task { [weak self] in
             await self?.runConversation(provider: provider, model: model, tools: tools)
@@ -129,7 +145,10 @@ final class ChatModel: ObservableObject {
 
             var calls: [ToolCall] = []
             do {
-                let history = [systemPrompt] + messages.dropLast()
+                let prompt = orchestrationEnabled && !tools.isEmpty
+                    ? ChatMessage(role: .system, text: orchestratorPrompt)
+                    : systemPrompt
+                let history = [prompt] + messages.dropLast()
                 for try await event in provider.stream(messages: history, model: model, tools: tools) {
                     guard !Task.isCancelled else { return }
                     switch event {
@@ -157,10 +176,18 @@ final class ChatModel: ObservableObject {
 
             for call in calls {
                 guard !Task.isCancelled else { return }
-                let output = await execute(call)
+                let output: String
+                if let domain = ToolDomain.domain(forDelegate: call.name) {
+                    activity = "\(domain.displayName)-specialist"
+                    output = await runSpecialist(
+                        domain, task: call.arguments.string("task") ?? call.summary)
+                } else {
+                    output = await execute(call)
+                }
                 messages.append(ChatMessage(
                     role: .tool, text: output, toolName: call.name, toolCallID: call.id))
             }
+            activity = "Samenvatten"
 
             if round == maxToolRounds - 1 {
                 errorText = "Gestopt na \(maxToolRounds) tool-rondes."
@@ -170,7 +197,7 @@ final class ChatModel: ObservableObject {
 
     /// Read-only tools run straight away; anything that changes state waits for
     /// a human. The model never gets to decide that for itself.
-    private func execute(_ call: ToolCall) async -> String {
+    func execute(_ call: ToolCall) async -> String {
         let registry = ToolRegistry.shared
         guard let tool = registry.tool(named: call.name) else {
             return ToolError.unknownTool(call.name).localizedDescription
@@ -182,6 +209,26 @@ final class ChatModel: ObservableObject {
             }
         }
         return await registry.run(call)
+    }
+
+    // MARK: - Trace
+
+    func beginStep(label: String, detail: String) -> UUID {
+        let step = TraceStep(label: label, detail: detail, state: .running, startedAt: Date())
+        trace.append(step)
+        return step.id
+    }
+
+    func updateStep(_ id: UUID, detail: String) {
+        guard let index = trace.firstIndex(where: { $0.id == id }) else { return }
+        trace[index].detail = detail
+    }
+
+    func finishStep(_ id: UUID, detail: String, state: TraceStep.State) {
+        guard let index = trace.firstIndex(where: { $0.id == id }) else { return }
+        trace[index].detail = detail
+        trace[index].state = state
+        trace[index].finishedAt = Date()
     }
 
     // MARK: - Approval
@@ -219,8 +266,21 @@ final class ChatModel: ObservableObject {
 
     // MARK: - Message mutation
 
+    /// Belt and braces on top of the provider's own token cap: a runaway
+    /// stream grows this string on every delta *and* re-renders it in SwiftUI
+    /// each time, so the cost is quadratic before it is fatal. A cloud provider
+    /// that ignores `max_tokens` would otherwise be able to do the same damage.
+    private static let maxReplyCharacters = 40_000
+
     private func append(_ delta: String, to id: UUID) {
         guard let index = messages.firstIndex(where: { $0.id == id }) else { return }
+        guard messages[index].text.count < Self.maxReplyCharacters else {
+            if streamTask != nil {
+                Log.write("stream: reply exceeded \(Self.maxReplyCharacters) chars — stopping")
+                cancel()
+            }
+            return
+        }
         messages[index].text += delta
     }
 
@@ -279,6 +339,18 @@ enum Settings {
     static var hasOnboarded: Bool {
         get { defaults.bool(forKey: "hasOnboarded") }
         set { defaults.set(newValue, forKey: "hasOnboarded") }
+    }
+
+    static var orchestrationEnabled: Bool {
+        get { defaults.object(forKey: "orchestrationEnabled") as? Bool ?? true }
+        set { defaults.set(newValue, forKey: "orchestrationEnabled") }
+    }
+
+    /// Tag for the fast tier. Nil means "reuse the orchestrator's model", which
+    /// is the right default on a machine with only one model pulled.
+    static var specialistModel: String? {
+        get { defaults.string(forKey: "specialistModel") }
+        set { defaults.set(newValue, forKey: "specialistModel") }
     }
 
     static var toolsEnabled: Bool {

@@ -164,6 +164,12 @@ dezelfde vraag, één keer beantwoord.
 
 ### 4.3 De drie snelheden
 
+> **Zoals gebouwd:** specialisten draaien **na elkaar**, niet parallel. De
+> goedkeuringsgrendel is één wachtrij — twee specialisten die tegelijk om
+> toestemming vragen zouden elkaar overschrijven. Parallel kan later, maar dan
+> alleen voor specialisten met uitsluitend lees-tools.
+
+
 Niet elke vraag verdient dezelfde machinerie. Dit is wat
 [RouteLLM](https://github.com/lm-sys/RouteLLM) laat zien voor modelkeuze —
 eenvoudige vragen naar een goedkoper model levert tot 85% kostenreductie met 95%
@@ -440,7 +446,7 @@ schema kost context en elke extra keuze verhoogt de kans op de verkeerde.
 Volgorde op waarde, met het goedkope eerst zodat er snel iets te merken is en de
 dure keuzes met meer informatie gemaakt worden.
 
-### Fase A — bereik (1–2 dagen)
+### Fase A — bereik ✅ gebouwd
 
 De tools die vandaag al kunnen, zonder nieuw ontwerp. Dit brengt de toolset van
 zestien naar ongeveer zesentwintig — precies het punt waarop fase B nodig wordt.
@@ -457,7 +463,7 @@ zestien naar ongeveer zesentwintig — precies het punt waarop fase B nodig word
 **Klaar wanneer:** "wat weet ik over X" raakt notities én berichten, en je eigen
 Shortcuts verschijnen als aanroepbare tools.
 
-### Fase B — orchestrator en specialisten (2–3 dagen)
+### Fase B — orchestrator en specialisten ✅ gebouwd
 
 De architectuur uit §4. Dit is de fase die bepaalt of de app schaalt naar vijftig
 tools of vastloopt op dertig.
@@ -480,9 +486,9 @@ niets naast chat en geheugen.
 **Klaar wanneer:** "vat mijn mail samen en zet de deadlines in mijn agenda" raakt
 twee specialisten parallel, en "hoeveel batterij" gaat nog steeds in één beurt.
 
-### Fase C — de app als burger van je systeem (1 dag)
+### Fase C — de app als burger van je systeem (deels gebouwd)
 
-16. `NSStatusItem` met dropdown: status, snelle acties, instellingen, afsluiten
+16. ✅ `NSStatusItem` met dropdown: status, snelle acties, instellingen, afsluiten
 17. `Placement`-abstractie: pill-fallback zonder notch
 18. Toestemmingen per bron in onboarding, met uitleg per stuk
 19. Sneltoets (⌥Space) om het paneel te openen

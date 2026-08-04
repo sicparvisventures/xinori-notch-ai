@@ -6,6 +6,17 @@ import Foundation
 /// through a shell — so an argument that happens to contain `;` or backticks is
 /// data, not syntax. Only `run_shell` deliberately goes through `zsh -c`, and
 /// that one is gated behind explicit confirmation.
+/// Minimal shared flag between the watchdog thread and the reader.
+private final class Atomic<Value>: @unchecked Sendable {
+    private let lock = NSLock()
+    private var stored: Value
+    init(_ value: Value) { stored = value }
+    var value: Value {
+        get { lock.lock(); defer { lock.unlock() }; return stored }
+        set { lock.lock(); stored = newValue; lock.unlock() }
+    }
+}
+
 enum Shell {
     struct Result: Sendable {
         let status: Int32
@@ -76,17 +87,32 @@ enum Shell {
                     return
                 }
 
+                // A watchdog, because `readDataToEndOfFile` blocks until the
+                // child closes its pipes. Checking the deadline *after* those
+                // reads — as this did — makes the timeout unreachable for
+                // exactly the case it exists for: a child that never exits.
+                // Terminating from a second thread gives the reads their EOF.
+                let timedOut = Atomic(false)
+                let watchdog = Thread {
+                    let deadline = Date().addingTimeInterval(timeout)
+                    while Date() < deadline {
+                        if !process.isRunning { return }
+                        usleep(50_000)
+                    }
+                    if process.isRunning {
+                        timedOut.value = true
+                        process.terminate()
+                    }
+                }
+                watchdog.start()
+
                 // Read before waiting: a child that fills the 64K pipe buffer
                 // blocks forever if we wait for exit first.
                 let outData = outPipe.fileHandleForReading.readDataToEndOfFile()
                 let errData = errPipe.fileHandleForReading.readDataToEndOfFile()
+                process.waitUntilExit()
 
-                let deadline = Date().addingTimeInterval(timeout)
-                while process.isRunning, Date() < deadline {
-                    usleep(20_000)
-                }
-                if process.isRunning {
-                    process.terminate()
+                if timedOut.value {
                     continuation.resume(throwing: ShellError.timedOut(executable))
                     return
                 }

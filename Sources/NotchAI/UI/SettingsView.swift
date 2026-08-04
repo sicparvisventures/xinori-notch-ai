@@ -88,6 +88,30 @@ struct SettingsView: View {
                 PanelToggle(isOn: $chat.toolsEnabled)
             }
             Divider().overlay(Panel.hairline)
+            Divider().overlay(Panel.hairline)
+            SettingRow(title: "Specialisten",
+                       subtitle: chat.orchestrationEnabled
+                           ? "De orchestrator ziet zes domeinen en delegeert"
+                           : "Alle \(ToolRegistry.shared.tools.count) tools direct aan één model") {
+                PanelToggle(isOn: $chat.orchestrationEnabled)
+            }
+            if chat.orchestrationEnabled {
+                Divider().overlay(Panel.hairline)
+                SettingRow(title: "Model voor specialisten",
+                           subtitle: "Kleiner en sneller; ze hebben een smal domein") {
+                    Picker("", selection: Binding(
+                        get: { Settings.specialistModel ?? chat.model },
+                        set: { Settings.specialistModel = $0 == chat.model ? nil : $0 }
+                    )) {
+                        ForEach(chat.availableModels, id: \.self) { Text($0).tag($0) }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(width: 160)
+                    .disabled(chat.availableModels.isEmpty)
+                }
+            }
+            Divider().overlay(Panel.hairline)
             SettingRow(title: "Antwoord voorlezen",
                        subtitle: "Spreekt het antwoord uit zodra het klaar is") {
                 PanelToggle(isOn: $app.speakReplies)

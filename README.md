@@ -112,6 +112,46 @@ An LLM driving your Mac is only as safe as what it can do without you. So:
   syntax. `run_shell` is the single deliberate exception.
 - Nothing is auto-approved and there is no "always allow" — by design.
 
+## Orchestrator and specialists
+
+Past roughly twenty tools, handing them all to one model stops working — not
+because they don't fit, but because the choice degrades. So the orchestrator
+sees six **domains** rather than twenty-eight tools, and delegates:
+
+| Specialist | Owns | Model tier |
+|---|---|---|
+| `mail` | inbox, messages, composing | fast |
+| `agenda` | events, reminders, contacts | fast |
+| `bestanden` | search, read, write, trash | fast |
+| `systeem` | hardware, apps, jobs, shell | balanced |
+| `geheugen` | notes, history, clipboard | balanced |
+| `shortcuts` | your own Shortcuts | fast |
+
+Routing is by domain rather than by embedding tool descriptions and retrieving
+the top-k. That obvious approach measurably underperforms: the ACL-2025
+[ToolRet](https://github.com/mangopy/tool-retrieval-benchmark) benchmark shows
+generic retrieval models are poor at tool retrieval, because they're trained on
+prose while a tool match often turns on parameters. "Is this about mail?" is a
+question a 4B model answers reliably; "rank these twenty-eight tools" is not.
+
+Three speeds keep the common case cheap — answer directly, delegate to one
+specialist, or delegate to several — chosen by the orchestrator's own prompt
+rather than a separate classifier.
+
+**A specialist returns a summary, never raw tool output**, capped at ~1500
+characters. 31k mail rows are fine inside a specialist and fatal on the way
+back. There is one guard worth knowing about: small models with thinking
+disabled sometimes write their reasoning into the answer instead of the answer
+("Okay, let me see. The user asked to…"). Left alone the orchestrator then has
+no facts and invents them — it produced nine plausible Shortcut names that did
+not exist. When a specialist's reply looks like reasoning, the raw tool output
+is passed instead.
+
+Specialists run **sequentially**, not in parallel: the approval gate is a single
+queue and two specialists asking at once would clobber each other.
+
+Turn the whole thing off in settings to go back to a flat tool list.
+
 ## Choosing a model
 
 Settings lists a catalogue of tool-capable local models with the one fact that
@@ -170,7 +210,7 @@ set up an account you already have.
 ./scripts/release.sh v0.1.0          # release build + zip in dist/
 ```
 
-Stop with `pkill -f NotchAI`. Logs land in `build/NotchAI.log`.
+Quit from the menu bar item. Logs land in `build/NotchAI.log`.
 
 The `--ask` mode is the quickest way to see the tool loop work:
 

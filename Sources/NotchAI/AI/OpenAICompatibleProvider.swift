@@ -58,6 +58,7 @@ struct OpenAICompatibleProvider: LLMProvider {
                         "model": model,
                         "messages": messages.map(Self.encode),
                         "stream": true,
+                        "max_tokens": 2048,
                     ]
                     if !tools.isEmpty {
                         body["tools"] = tools.map { schema in
