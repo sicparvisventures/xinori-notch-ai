@@ -293,6 +293,17 @@ vragen, want mensen zoeken op woorden die ze zelf gebruikt hebben.
 
 Kosten: laag. FTS5 zit in de systeem-SQLite. Bouwtijd: dagen, niet weken.
 
+> **Zoals gebouwd, met twee correcties op wat hier stond.** Embeddings gaan
+> niet via een chatmodel: Ollama start per model een server en zet embeddings
+> alleen aan voor échte embedding-modellen — `qwen3` antwoordt letterlijk
+> "This server does not support embeddings". En het voor de hand liggende
+> `nomic-embed-text` is in de praktijk Engelstalig: op drie Nederlandse feiten
+> zette de vraag "die bouwvakker uit Oost-Vlaanderen" de aannemer uit Gent
+> **laatste** (0,602, achter een notitie over het ontkalken van een
+> koffiemachine); dezelfde drie feiten in het Engels zetten hem eerste op 0,713.
+> `embeddinggemma` (0,6 GB, meertalig) doet het Nederlandse geval wel goed:
+> 0,497 tegen 0,292 en 0,261.
+
 **Laag 2 — semantisch zoeken.**
 FTS5 vindt "Van Damme" maar niet "die aannemer uit Gent". Daarvoor heb je
 embeddings nodig. Op Swift is
@@ -490,19 +501,19 @@ twee specialisten parallel, en "hoeveel batterij" gaat nog steeds in één beurt
 
 16. ✅ `NSStatusItem` met dropdown: status, snelle acties, instellingen, afsluiten
 17. ✅ `Placement`-abstractie: pill-fallback zonder notch, plus een schakelaar om hem ook mét notch te kiezen
-18. Toestemmingen per bron in onboarding, met uitleg per stuk — *nog open*
-19. Sneltoets (⌥Space) om het paneel te openen — *nog open*
+18. ✅ Toestemmingen per bron in onboarding, met uitleg per stuk
+19. ✅ Sneltoets (⌥Space), via Carbon zodat er geen Accessibility-recht nodig is
 
 **Klaar wanneer:** de app draait op een Mac mini en je kunt hem afsluiten zonder
 Terminal.
 
-### Fase D — geheugen (3–5 dagen)
+### Fase D — geheugen ✅ gebouwd
 
-20. `NotchAI.sqlite` met FTS5 over notities, mailonderwerpen, gesprekken
-21. Achtergrond-indexering, opt-in per bron, met teller en wisknop
-22. `search_memory` als tool van de `geheugen`-specialist
-23. Embeddings via Ollama `/api/embeddings` + vectorzoeken erbovenop
-24. `remember` die feiten naar markdown schrijft, met goedkeuring
+✅ 20. `NotchAI.sqlite` met FTS5 over notities, mailonderwerpen, gesprekken
+✅ 21. Achtergrond-indexering, opt-in per bron, met teller en wisknop
+✅ 22. `search_memory` als tool van de `geheugen`-specialist
+✅ 23. Embeddings via Ollama `/api/embeddings` + vectorzoeken erbovenop
+✅ 24. `remember` die feiten naar markdown schrijft, met goedkeuring
 
 **Klaar wanneer:** "wat schreef ik over de kwartaalaangifte" vindt een notitie van
 drie maanden terug zonder dat je het juiste woord gebruikt.

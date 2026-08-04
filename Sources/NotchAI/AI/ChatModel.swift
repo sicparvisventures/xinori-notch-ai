@@ -344,6 +344,21 @@ enum Settings {
     /// Force the floating pill even on a Mac that has a notch. Some people
     /// prefer it, and it is the only way to exercise the fallback without a
     /// second machine.
+    /// Which sources may be indexed. Empty by default — an index over your
+    /// notes, mail and conversations is not something to switch on for someone.
+    static var memorySources: Set<MemorySource> {
+        get {
+            let raw = defaults.stringArray(forKey: "memorySources") ?? []
+            return Set(raw.compactMap(MemorySource.init(rawValue:)))
+        }
+        set { defaults.set(newValue.map(\.rawValue), forKey: "memorySources") }
+    }
+
+    static var semanticMemory: Bool {
+        get { defaults.bool(forKey: "semanticMemory") }
+        set { defaults.set(newValue, forKey: "semanticMemory") }
+    }
+
     static var preferPill: Bool {
         get { defaults.bool(forKey: "preferPill") }
         set { defaults.set(newValue, forKey: "preferPill") }

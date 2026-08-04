@@ -51,7 +51,7 @@ enum ToolDomain: String, CaseIterable, Sendable {
         case .systeem:
             return "Deze Mac zelf: batterij, schijf en geheugen, welke apps draaien, apps activeren of sluiten, geplande taken, shell-commando's."
         case .geheugen:
-            return "Notities en geschiedenis: Apple Notes doorzoeken en lezen, een notitie maken, browsergeschiedenis, klembord."
+            return "Wat de gebruiker weet en eerder zei: het doorzoekbare geheugen over notities, mail en eerdere gesprekken, iets laten onthouden, Apple Notes lezen en schrijven, browsergeschiedenis, klembord."
         case .shortcuts:
             return "Shortcuts van de gebruiker: zien welke er zijn en er een uitvoeren."
         }
@@ -75,7 +75,8 @@ enum ToolDomain: String, CaseIterable, Sendable {
             return pick(["system_info", "list_apps", "frontmost_app", "control_app",
                          "list_scheduled_jobs", "schedule_job", "run_shell"])
         case .geheugen:
-            return pick(["search_notes", "read_note", "create_note",
+            return pick(["search_memory", "remember", "memory_status",
+                         "search_notes", "read_note", "create_note",
                          "browser_history", "clipboard_read", "clipboard_write"])
         case .shortcuts:
             return pick(["list_shortcuts", "run_shortcut"])

@@ -6,6 +6,7 @@ struct SettingsView: View {
     @ObservedObject var app: AppModel
     @ObservedObject var chat: ChatModel
     @ObservedObject var ollama: OllamaSetup
+    @ObservedObject var memory: MemoryIndexer
 
     @State private var keyDrafts: [ProviderID: String] = [:]
 
@@ -23,6 +24,7 @@ struct SettingsView: View {
                     keysSection
                     localSection
                     ModelCatalogView(chat: chat, ollama: ollama)
+                    MemorySettingsView(memory: memory, ollama: ollama)
                     permissionsSection
                     aboutSection
                 }

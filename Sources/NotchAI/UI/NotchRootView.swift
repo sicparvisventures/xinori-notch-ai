@@ -61,7 +61,7 @@ struct NotchRootView: View {
         case .chat:
             ChatPanel(app: app, chat: app.chat, transcriber: app.transcriber)
         case .settings:
-            SettingsView(app: app, chat: app.chat, ollama: app.ollama)
+            SettingsView(app: app, chat: app.chat, ollama: app.ollama, memory: app.memory)
         }
     }
 

@@ -1,3 +1,6 @@
+import AppKit
+import Contacts
+import EventKit
 import SwiftUI
 
 /// First-run setup, inside the notch.
@@ -28,6 +31,7 @@ struct OnboardingView: View {
                     switch step {
                     case 0: welcome
                     case 1: localModel
+                    case 2: access
                     default: providers
                     }
                 }
@@ -42,7 +46,7 @@ struct OnboardingView: View {
         .task { await ollama.refresh() }
     }
 
-    private let titles = ["Welkom", "Lokaal model", "Cloud-providers"]
+    private let titles = ["Welkom", "Lokaal model", "Toegang", "Cloud-providers"]
 
     // MARK: - Step 0
 
@@ -178,7 +182,61 @@ struct OnboardingView: View {
         }
     }
 
-    // MARK: - Step 2
+    // MARK: - Step 2 — access, one grant at a time
+
+    /// Asked per capability rather than as one block.
+    ///
+    /// A single "grant everything" step reads as a demand and gets refused
+    /// wholesale; naming what each grant buys lets someone take the calendar and
+    /// skip the mail, which is a perfectly reasonable thing to want.
+    private var access: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            GroupHead(text: "Wat mag het zien")
+            Text("""
+            macOS vraagt dit per onderdeel. Je hoeft niets nu te doen — de app vraagt \
+            het ook op het moment dat het nodig is.
+            """)
+            .font(.system(size: 11.5)).foregroundStyle(Panel.inkFaint)
+            .fixedSize(horizontal: false, vertical: true)
+
+            grant("Microfoon en spraak", "Om te kunnen dicteren. Spraak blijft op het toestel.",
+                  action: "Vraag nu") {
+                Task { _ = await Transcriber.requestAuthorization() }
+            }
+            grant("Agenda en herinneringen", "Om te kunnen zeggen wat er op de planning staat.",
+                  action: "Vraag nu") {
+                Task { _ = try? await EKEventStore().requestFullAccessToEvents() }
+            }
+            grant("Contacten", "Om een nummer of adres te kunnen opzoeken.",
+                  action: "Vraag nu") {
+                Task { _ = try? await CNContactStore().requestAccess(for: .contacts) }
+            }
+            grant("Volledige schijftoegang", "Alleen nodig voor mail en notities. macOS laat dit niet vragen — je zet het zelf aan.",
+                  action: "Open paneel") {
+                NSWorkspace.shared.open(URL(string:
+                    "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!)
+            }
+        }
+    }
+
+    private func grant(_ title: String, _ why: String,
+                       action: String, run: @escaping () -> Void) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(Panel.ink.opacity(0.9))
+                Text(why)
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(Panel.inkFaint)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 8)
+            PanelButton(title: action, prominent: false, action: run)
+        }
+    }
+
+    // MARK: - Step 3
 
     private var providers: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -205,6 +263,11 @@ struct OnboardingView: View {
 
     private var footer: some View {
         HStack(spacing: 8) {
+            if step == 2 {
+                Text("Elk onderdeel is los te weigeren.")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(Panel.inkFaint)
+            }
             if step == 1, !ollama.step.isReady {
                 Text("Je kunt dit overslaan en later in instellingen afmaken.")
                     .font(.system(size: 10.5))
@@ -212,8 +275,8 @@ struct OnboardingView: View {
             }
             Spacer(minLength: 0)
 
-            if step < 2 {
-                if step == 1 {
+            if step < 3 {
+                if step == 1 || step == 2 {
                     Button("Overslaan") { step += 1 }
                         .buttonStyle(.plain)
                         .font(.system(size: 12))

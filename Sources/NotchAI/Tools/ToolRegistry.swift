@@ -37,6 +37,9 @@ struct ToolRegistry: Sendable {
         ClipboardReadTool(),
         ClipboardWriteTool(),
         BrowserHistoryTool(),
+        SearchMemoryTool(),
+        RememberTool(),
+        MemoryStatusTool(),
         RunShellTool(),
     ]
 

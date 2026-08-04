@@ -16,6 +16,7 @@ final class AppModel: ObservableObject {
     let transcriber = Transcriber()
     let speaker = Speaker()
     let ollama = OllamaSetup()
+    let memory = MemoryIndexer()
 
     @Published var route: Route
 
@@ -54,6 +55,9 @@ final class AppModel: ObservableObject {
 
     /// Closing the notch should never leave audio running behind it.
     func standDown() async {
+        // A finished conversation is worth keeping if the user opted in — it is
+        // the only source that records what the assistant already told them.
+        await memory.remember(conversation: chat.messages)
         speaker.stop()
         await transcriber.stop()
         chat.cancel()

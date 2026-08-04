@@ -20,6 +20,7 @@ capability.
 | **Reaches into your Mac** | Tool calling: it reads your inbox, checks the calendar, finds files, lists and creates scheduled jobs, runs shell commands. |
 | **Asks before it acts** | Read-only tools run freely. Anything that changes state stops and shows you the exact call for approval. |
 | **Runs anywhere** | With a notch it *is* the notch; without one it becomes a floating pill under the menu bar. Same window, same behaviour, different corners. |
+| **Remembers** | Searchable memory over notes, mail subjects and past conversations, plus facts you ask it to keep. Opt-in per source, local, erasable. |
 | **Sets itself up** | First launch walks you through installing Ollama and pulling a model, with a real progress bar. Settings live in the notch too — no separate preferences window. |
 
 ## Requirements
@@ -153,6 +154,32 @@ queue and two specialists asking at once would clobber each other.
 
 Turn the whole thing off in settings to go back to a flat tool list.
 
+## Memory
+
+The assistant can search across your notes, mail subjects, past conversations
+and facts you told it to remember. One SQLite file in Application Support, never
+anywhere else, and **opt-in per source** — an index spanning all of those is a
+more sensitive object than any of them alone, so settings shows a count per
+source and one button that erases everything.
+
+Two search paths, merged: FTS5 for words, cosine over embeddings for meaning.
+FTS5 finds "Van Damme"; the vector path finds him when you ask about "die
+aannemer uit Gent". Neither alone is enough.
+
+Two things about the embedding model that cost time to discover:
+
+- **A chat model cannot do this.** Ollama starts a server per model and only
+  enables embeddings for embedding models; asking `qwen3` returns *"This server
+  does not support embeddings"*.
+- **`nomic-embed-text` is effectively English-only.** On three Dutch facts, the
+  query *"die bouwvakker uit Oost-Vlaanderen"* ranked the contractor from Ghent
+  **last** — 0.602, behind a note about descaling a coffee machine. The same
+  facts and query in English ranked him first at 0.713. `embeddinggemma`
+  (0.6 GB, multilingual) gets the Dutch case right: 0.497 against 0.292 and
+  0.261. That is the default.
+
+Mail is indexed as **senders and subjects only** — never message bodies.
+
 ## Choosing a model
 
 Settings lists a catalogue of tool-capable local models with the one fact that
@@ -208,6 +235,7 @@ set up an account you already have.
 ./scripts/run.sh --check-permissions # request mic + speech, print the outcome
 ./scripts/run.sh --dictate           # 8 seconds of headless dictation
 ./scripts/run.sh --ask "…"           # one full turn incl. tools, printed
+./scripts/run.sh --memory-selftest   # write, index, search and embed a few documents
 ./scripts/release.sh v0.1.0          # release build + zip in dist/
 ```
 

@@ -9,7 +9,7 @@ import Foundation
 /// The extraction runs in one Python pass: open the store read-only, decompress,
 /// strip the protobuf framing, filter. One subprocess for a whole search rather
 /// than one per note.
-private enum NotesStore {
+enum NotesStore {
     static var path: String? {
         let url = FileManager.default.homeDirectoryForCurrentUser
             .appending(path: "Library/Group Containers/group.com.apple.notes/NoteStore.sqlite")
