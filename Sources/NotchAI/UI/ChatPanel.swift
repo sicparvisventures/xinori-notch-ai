@@ -159,16 +159,35 @@ struct ChatPanel: View {
                             .foregroundStyle(.orange.opacity(0.9))
                             .id("error")
                     }
+
+                    // Anchoring to the last *message* left the activity
+                    // indicator, the live dictation and any error below the
+                    // fold — the very things you want to see. A zero-height
+                    // anchor after everything always lands at the true bottom.
+                    Color.clear.frame(height: 1).id("bottom")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
             }
             .scrollContentBackground(.hidden)
-            .onChange(of: chat.messages.last?.text) { _, _ in
-                guard let last = chat.messages.last else { return }
-                withAnimation(.easeOut(duration: 0.15)) { proxy.scrollTo(last.id, anchor: .bottom) }
-            }
+            .onChange(of: chat.messages.count) { _, _ in scrollToBottom(proxy) }
+            .onChange(of: chat.messages.last?.text) { _, _ in scrollToBottom(proxy) }
+            .onChange(of: chat.activity) { _, _ in scrollToBottom(proxy) }
+            .onChange(of: transcriber.transcript) { _, _ in scrollToBottom(proxy) }
+            .onAppear { scrollToBottom(proxy, animated: false) }
+        }
+    }
+
+    /// Streaming appends a few characters at a time, so this fires often;
+    /// keep it cheap and let SwiftUI coalesce.
+    private func scrollToBottom(_ proxy: ScrollViewProxy, animated: Bool = true) {
+        guard animated else {
+            proxy.scrollTo("bottom", anchor: .bottom)
+            return
+        }
+        withAnimation(.easeOut(duration: 0.12)) {
+            proxy.scrollTo("bottom", anchor: .bottom)
         }
     }
 

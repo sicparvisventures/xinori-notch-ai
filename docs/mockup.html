@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Xinori Notch AI — mockups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --snow:#F8F9FB;--white:#FFF;--ice:#F0F2F5;--cloud:#E4E8ED;--line:#D0D6DE;
+  --slate:#8B95A8;--muted:#606C80;--midnight-3:#2A3142;--midnight-2:#1A1F2E;
+  --midnight:#0F1219;--green:#1D9E75;--green-light:#D1F2E4;--green-dark:#147A5A;
+  --amber:hsl(38 92% 50%);--amber-ink:hsl(35 80% 30%);
+  --font-display:'Sora',system-ui,sans-serif;--font-body:'DM Sans',system-ui,sans-serif;
+  --font-mono:'Space Mono',ui-monospace,monospace;--radius:4px;--ctl:8px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--snow);color:var(--midnight);font-family:var(--font-body);
+  font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-display);margin:0;line-height:1.2}
+p{margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding:0 28px}
+.eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.10em;
+  text-transform:uppercase;color:var(--muted)}
+header{padding:56px 0 8px;border-bottom:1px solid var(--line);background:var(--white)}
+header h1{font-size:34px;font-weight:800;letter-spacing:-1.1px;margin:10px 0 10px}
+header p{color:var(--muted);max-width:56em;padding-bottom:34px}
+section{padding:52px 0;border-bottom:1px solid var(--line)}
+.shead{margin-bottom:26px;max-width:56em}
+.shead h2{font-size:21px;font-weight:700;letter-spacing:-.5px;margin:10px 0 8px}
+.shead p{color:var(--muted)}
+.note{font-size:12.5px;color:var(--muted);margin-top:14px;padding-left:13px;
+  border-left:2px solid var(--line)}
+
+/* ── Shared macOS-ish canvas ──────────────────────────────────────── */
+.canvas{background:linear-gradient(150deg,#5b6b8a,#2f3a4f);border-radius:var(--radius);
+  border:1px solid var(--line);padding:0;overflow:hidden;position:relative}
+.menubar{height:26px;background:rgba(20,24,33,.72);backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding:0 12px;gap:14px;position:relative;z-index:5}
+.menubar .apple{width:11px;height:11px;border-radius:2px;background:rgba(255,255,255,.8)}
+.menubar .mi{font-size:10.5px;color:rgba(255,255,255,.82);font-weight:600}
+.menubar .sp{flex:1}
+.menubar .tray{display:flex;align-items:center;gap:11px}
+.menubar .tray span{font-size:10px;color:rgba(255,255,255,.72);font-family:var(--font-mono)}
+.trayicon{width:15px;height:15px;border-radius:22%;background:var(--midnight);
+  position:relative;border:1px solid rgba(255,255,255,.25)}
+.trayicon::after{content:"";position:absolute;left:50%;top:3px;transform:translateX(-50%);
+  width:8px;height:5px;border-radius:1.5px;background:#fff}
+.trayicon.on{outline:2px solid rgba(255,255,255,.35);outline-offset:1px}
+.desk{height:352px;position:relative}
+
+/* ── Menu bar dropdown ────────────────────────────────────────────── */
+.popover{position:absolute;top:32px;right:14px;width:276px;background:rgba(28,32,42,.97);
+  border:1px solid rgba(255,255,255,.13);border-radius:10px;overflow:hidden;
+  color:#fff;z-index:9;backdrop-filter:blur(20px)}
+.popover .ph{padding:12px 14px 10px;border-bottom:1px solid rgba(255,255,255,.09)}
+.popover .prow{display:flex;align-items:center;gap:9px}
+.popover .name{font-family:var(--font-display);font-size:12.5px;font-weight:700}
+.popover .state{margin-left:auto;display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;color:#8fe3c4}
+.popover .state i{width:5px;height:5px;border-radius:999px;background:var(--green);display:block}
+.popover .meta{font-family:var(--font-mono);font-size:9.5px;color:rgba(255,255,255,.42);
+  margin-top:7px;letter-spacing:.04em}
+.popover .grp{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.09)}
+.popover .grp:last-child{border-bottom:0}
+.popover .item{display:flex;align-items:center;gap:10px;padding:7px 14px;font-size:12px;
+  color:rgba(255,255,255,.9)}
+.popover .item.hi{background:rgba(255,255,255,.09)}
+.popover .item .key{margin-left:auto;font-family:var(--font-mono);font-size:9.5px;
+  color:rgba(255,255,255,.34)}
+.popover .ico{width:14px;text-align:center;opacity:.62;font-size:11px}
+.popover .sub{padding:2px 14px 8px;font-size:10.5px;color:rgba(255,255,255,.40)}
+
+/* ── Notch + pill ─────────────────────────────────────────────────── */
+.notchbar{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;
+  height:20px;background:#05070b;border-radius:0 0 8px 8px;z-index:6}
+.pill{position:absolute;top:8px;left:50%;transform:translateX(-50%);
+  background:#05070b;border:1px solid rgba(255,255,255,.14);border-radius:999px;
+  padding:5px 14px;display:flex;align-items:center;gap:8px;z-index:7;color:#fff}
+.pill .dotg{width:5px;height:5px;border-radius:999px;background:var(--green)}
+.pill span{font-size:10.5px;color:rgba(255,255,255,.85)}
+.openpanel{position:absolute;top:0;left:50%;transform:translateX(-50%);width:270px;
+  background:#05070b;border:1px solid rgba(255,255,255,.10);border-top:0;
+  border-radius:0 0 18px 18px;padding:26px 13px 12px;z-index:8;color:#fff}
+.openpanel.frompill{top:6px;border-radius:16px;border-top:1px solid rgba(255,255,255,.10);
+  padding-top:12px}
+.openpanel .q{font-size:11px;color:rgba(255,255,255,.92);margin-bottom:7px}
+.openpanel .tl{font-family:var(--font-mono);font-size:9px;color:rgba(255,255,255,.42);
+  margin-bottom:4px}
+.openpanel .an{font-size:10.5px;color:rgba(255,255,255,.78);line-height:1.5;margin-top:6px}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cap{font-size:12px;color:var(--muted);margin-top:10px}
+.cap b{color:var(--midnight);font-weight:600}
+
+/* ── Second brain panel ───────────────────────────────────────────── */
+.brain{background:#05070b;border:1px solid rgba(255,255,255,.10);border-radius:16px;
+  padding:16px;color:#fff}
+.brain .bh{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.brain .bt{font-family:var(--font-display);font-size:12.5px;font-weight:700}
+.brain .chip{margin-left:auto;font-family:var(--font-mono);font-size:9px;
+  padding:2px 7px;border-radius:var(--ctl);background:rgba(255,255,255,.09);
+  color:rgba(255,255,255,.55)}
+.hit{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.hit:last-child{border-bottom:0}
+.hit .src{font-family:var(--font-mono);font-size:8.5px;letter-spacing:.06em;
+  text-transform:uppercase;padding:2px 6px;border-radius:var(--ctl);height:fit-content;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);flex:none;min-width:56px;
+  text-align:center}
+.hit .body .t{font-size:11.5px;color:rgba(255,255,255,.9);margin-bottom:2px}
+.hit .body .s{font-size:10.5px;color:rgba(255,255,255,.45)}
+.hit .score{margin-left:auto;font-family:var(--font-mono);font-size:9px;
+  color:rgba(255,255,255,.32);flex:none}
+
+/* Graph sketch — deliberately a sketch, not a product decision. */
+.graph{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px;position:relative;height:280px;overflow:hidden}
+.graph svg{width:100%;height:100%}
+.gnode{font-family:var(--font-body);font-size:10.5px;font-weight:600}
+
+/* ── Tables ───────────────────────────────────────────────────────── */
+.table{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden}
+.trow{display:grid;grid-template-columns:190px 1fr 118px 92px;gap:16px;padding:10px 16px;
+  border-bottom:1px solid var(--cloud);align-items:center;font-size:12.5px}
+.trow:last-child{border-bottom:0}
+.trow.hdr{background:var(--ice)}
+.trow.hdr span{font-family:var(--font-mono);font-size:9px;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted)}
+.trow .n{font-family:var(--font-mono);font-size:11.5px}
+.trow .w{color:var(--muted)}
+.pill-t{font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:var(--ctl);
+  justify-self:start;white-space:nowrap}
+.p-free{background:var(--ice);color:var(--muted)}
+.p-ask{background:hsl(38 92% 50% / .13);color:var(--amber-ink)}
+.p-new{background:var(--green-light);color:var(--green-dark)}
+.phase{display:flex;gap:10px;align-items:baseline;padding:13px 0;
+  border-bottom:1px solid var(--cloud)}
+.phase:last-child{border-bottom:0}
+.phase .lab{font-family:var(--font-display);font-size:13px;font-weight:700;min-width:74px}
+.phase .d{font-size:12.5px;color:var(--muted)}
+.phase .cost{margin-left:auto;font-family:var(--font-mono);font-size:10px;
+  color:var(--slate);white-space:nowrap}
+.card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);
+  padding:18px}
+.card h3{font-size:13px;font-weight:700;margin-bottom:6px}
+.card p{font-size:12.5px;color:var(--muted)}
+footer{padding:26px 0;font-size:12px;color:var(--muted)}
+@media (max-width:900px){.two,.three{grid-template-columns:1fr}
+  .trow{grid-template-columns:1fr;gap:4px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Mockup · bij ANALYSE.md</p>
+    <h1>Vier voorstellen, getekend</h1>
+    <p>Menubalk-aanwezigheid, de pill voor Macs zonder notch, het second brain in
+      het paneel, en waar de toolset heen groeit. Alles hieronder is een voorstel —
+      niets ervan is gebouwd.</p>
+  </div>
+</header>
+
+<!-- ══ 1. Menu bar ══ -->
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Voorstel 1</p>
+      <h2>De app wordt zichtbaar in de menubalk</h2>
+      <p>Nu is de app onzichtbaar als hij draait en onvindbaar als hij vastloopt —
+        afsluiten kan alleen via Terminal. Een statusitem met dropdown lost dat op,
+        en hergebruikt letterlijk dezelfde instellingen-view als het paneel.</p>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="canvas">
+          <div class="menubar">
+            <span class="apple"></span>
+            <span class="mi">Finder</span><span class="mi">Archief</span><span class="mi">Wijzig</span>
+            <span class="sp"></span>
+            <span class="tray"><span class="trayicon on"></span><span>100%</span><span>di 4 aug 09:41</span></span>
+          </div>
+          <div class="desk">
+            <div class="notchbar"></div>
+            <div class="popover">
+              <div class="ph">
+                <div class="prow">
+                  <span class="trayicon"></span>
+                  <span class="name">Xinori Notch AI</span>
+                  <span class="state"><i></i>Gereed</span>
+                </div>
+                <p class="meta">OLLAMA · QWEN3:8B · 16 TOOLS</p>
+              </div>
+              <div class="grp">
+                <div class="item hi"><span class="ico">▣</span>Open paneel<span class="key">⌥Space</span></div>
+                <div class="item"><span class="ico">✎</span>Nieuw gesprek<span class="key">⌘N</span></div>
+                <div class="item"><span class="ico">🎙</span>Dicteren<span class="key">⌥D</span></div>
+              </div>
+              <div class="grp">
+                <div class="item"><span class="ico">◈</span>Geheugen<span class="key">1.564</span></div>
+                <div class="item"><span class="ico">⚙</span>Instellingen…</div>
+                <p class="sub">Provider, model, tools, sleutels, toegang</p>
+              </div>
+              <div class="grp">
+                <div class="item"><span class="ico">⏻</span>Afsluiten<span class="key">⌘Q</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p class="cap"><b>Statusitem met dropdown.</b> Toont of het model bereikbaar is,
+          hoeveel tools er geladen zijn en hoe groot het geheugen is — de dingen die je
+          nu alleen uit het logbestand kunt halen.</p>
+      </div>
+
+      <div>
+        <div class="three" style="grid-template-columns:1fr;gap:14px">
+          <div class="card">
+            <h3>Waarom een popover en geen venster</h3>
+            <p>Instellingen zijn al een SwiftUI-view in het paneel. Een
+              <code>NSPopover</code> hangt diezelfde view onder het statusitem, zodat
+              er geen tweede implementatie ontstaat die uit elkaar gaat lopen.</p>
+          </div>
+          <div class="card">
+            <h3>De ontbrekende knop</h3>
+            <p>Afsluiten. Op dit moment is <code>pkill -f NotchAI</code> de enige manier,
+              wat voor een app die zich aan zakelijke gebruikers richt niet kan.</p>
+          </div>
+          <div class="card">
+            <h3>Sneltoetsen</h3>
+            <p>⌥Space om het paneel te openen zonder de muis naar de notch te bewegen.
+              Voor wie typt is dat sneller dan mikken op 185 × 32 punten.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 2. Pill ══ -->
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Voorstel 2</p>
+      <h2>Dezelfde app op een Mac zonder notch</h2>
+      <p>Nu sluit de app zichzelf af als er geen notch is. Dat sluit elke MacBook Air
+        van voor 2022, elke Mac mini en iedereen met een externe monitor als hoofdscherm
+        uit. Een zwevende pill gedraagt zich identiek — alleen de geometrie verschilt.</p>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="canvas">
+          <div class="menubar">
+            <span class="apple"></span><span class="mi">Safari</span><span class="mi">Archief</span>
+            <span class="sp"></span>
+            <span class="tray"><span class="trayicon"></span><span>di 4 aug 09:41</span></span>
+          </div>
+          <div class="desk">
+            <div class="pill"><span class="dotg"></span><span>Vraag iets</span></div>
+          </div>
+        </div>
+        <p class="cap"><b>Rust.</b> Een pill onder de menubalk, midden. Klein genoeg om te
+          negeren, groot genoeg om te vinden.</p>
+      </div>
+      <div>
+        <div class="canvas">
+          <div class="menubar">
+            <span class="apple"></span><span class="mi">Safari</span><span class="mi">Archief</span>
+            <span class="sp"></span>
+            <span class="tray"><span class="trayicon on"></span><span>di 4 aug 09:41</span></span>
+          </div>
+          <div class="desk">
+            <div class="openpanel frompill">
+              <p class="q">Wat weet ik over de kwartaalaangifte?</p>
+              <p class="tl">search_memory(query: kwartaalaangifte)</p>
+              <p class="an">Drie bronnen: een notitie van 12 mei met de deadlines, een mail
+                van je boekhouder van vanmorgen, en een bericht van Maarten over de btw-code.</p>
+            </div>
+          </div>
+        </div>
+        <p class="cap"><b>Open.</b> Hetzelfde paneel, dezelfde inhoud — alleen afgeronde
+          bovenhoeken in plaats van de holle schouders die alleen kloppen tegen hardware.</p>
+      </div>
+    </div>
+
+    <p class="note"><code>NotchGeometry</code> wordt <code>Placement</code>: <code>.notch</code>
+      of <code>.floating</code>. De rest van de app merkt het verschil niet — dat is de
+      reden dat dit een kleine wijziging is met een verdubbeling van de doelgroep.</p>
+  </div>
+</section>
+
+<!-- ══ 3. Second brain ══ -->
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Voorstel 3</p>
+      <h2>Geheugen dat je al hebt</h2>
+      <p>Op deze Mac staan 1.564 notities, 231.081 berichten en 31.559 ongelezen mails —
+        allemaal geverifieerd leesbaar. Het probleem is niet opslag maar ophalen: welke
+        drie daarvan zijn relevant voor deze vraag.</p>
+    </div>
+
+    <div class="two">
+      <div>
+        <div class="brain">
+          <div class="bh">
+            <span class="bt">Geheugen</span>
+            <span class="chip">3 van 1.564 bronnen</span>
+          </div>
+          <div class="hit">
+            <span class="src">Notitie</span>
+            <div class="body"><p class="t">Kwartaal Q2 — deadlines</p>
+              <p class="s">12 mei · "btw-aangifte voor de 20e, cijfers naar Van Hove"</p></div>
+            <span class="score">0.91</span>
+          </div>
+          <div class="hit">
+            <span class="src">Mail</span>
+            <div class="body"><p class="t">Boekhouder — kwartaalaangifte</p>
+              <p class="s">vanmorgen 08:12 · "graag de cijfers voor vrijdag"</p></div>
+            <span class="score">0.87</span>
+          </div>
+          <div class="hit">
+            <span class="src">Bericht</span>
+            <div class="body"><p class="t">Maarten</p>
+              <p class="s">3 juni · "de btw-code voor die facturen is 21, niet 6"</p></div>
+            <span class="score">0.74</span>
+          </div>
+        </div>
+        <p class="cap"><b>Wat het model te zien krijgt</b> voordat het antwoordt — en wat
+          jij te zien krijgt, zodat je kunt controleren waar een antwoord vandaan komt.</p>
+      </div>
+
+      <div class="three" style="grid-template-columns:1fr;gap:14px">
+        <div class="card">
+          <h3>Laag 1 — zoeken op woorden</h3>
+          <p>SQLite met FTS5 over notities, mailonderwerpen en gesprekken. Beantwoordt
+            de meeste vragen, want mensen zoeken op woorden die ze zelf gebruikt hebben.
+            Dagen werk, geen nieuwe afhankelijkheden.</p>
+        </div>
+        <div class="card">
+          <h3>Laag 2 — zoeken op betekenis</h3>
+          <p>FTS5 vindt "Van Damme" maar niet "die aannemer uit Gent". Embeddings via
+            Ollama's eigen <code>/api/embeddings</code> — dat draait toch al, dus geen
+            tweede runtime erbij.</p>
+        </div>
+        <div class="card">
+          <h3>Laag 3 — de graph</h3>
+          <p>Entiteiten en relaties, afgeleid uit je notities. <b>Advies: nog niet.</b>
+            Elke notitie moet door een model, en die extractie verslechtert stilletjes
+            als je model verandert. Laag 1 en 2 leveren 80% voor 20% van het werk.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:24px">
+      <p class="eyebrow" style="margin-bottom:10px">Hoe laag 3 eruit zou zien — schets, geen belofte</p>
+      <div class="graph">
+        <svg viewBox="0 0 900 240" preserveAspectRatio="xMidYMid meet">
+          <g stroke="#D0D6DE" stroke-width="1.5" fill="none">
+            <path d="M450 120 L250 60"/><path d="M450 120 L250 190"/>
+            <path d="M450 120 L680 55"/><path d="M450 120 L690 130"/>
+            <path d="M450 120 L660 200"/><path d="M250 60 L250 190"/>
+          </g>
+          <g>
+            <circle cx="450" cy="120" r="34" fill="#0F1219"/>
+            <text x="450" y="124" text-anchor="middle" fill="#fff" class="gnode">Van Damme</text>
+            <circle cx="250" cy="60" r="26" fill="#fff" stroke="#D0D6DE"/>
+            <text x="250" y="64" text-anchor="middle" fill="#0F1219" class="gnode">Contract</text>
+            <circle cx="250" cy="190" r="26" fill="#fff" stroke="#D0D6DE"/>
+            <text x="250" y="194" text-anchor="middle" fill="#0F1219" class="gnode">Offerte</text>
+            <circle cx="680" cy="55" r="26" fill="#fff" stroke="#D0D6DE"/>
+            <text x="680" y="59" text-anchor="middle" fill="#0F1219" class="gnode">Maarten</text>
+            <circle cx="690" cy="130" r="26" fill="#fff" stroke="#D0D6DE"/>
+            <text x="690" y="134" text-anchor="middle" fill="#0F1219" class="gnode">Q2</text>
+            <circle cx="660" cy="200" r="26" fill="#fff" stroke="#D0D6DE"/>
+            <text x="660" y="204" text-anchor="middle" fill="#0F1219" class="gnode">Gent</text>
+          </g>
+        </svg>
+      </div>
+      <p class="note">Mooi om te laten zien, duur om te onderhouden. Bouw dit pas als je
+        merkt dat semantisch zoeken tekortschiet op een vraag die je vaak stelt — niet
+        omdat het goed staat op een screenshot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ 4. Toolset ══ -->
+<section>
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Voorstel 4</p>
+      <h2>Waar de toolset heen groeit</h2>
+      <p>Zestien tools nu. Hieronder wat er bij kan op basis van wat op deze machine
+        aantoonbaar leesbaar is. Gesorteerd op waarde per eenheid complexiteit.</p>
+    </div>
+
+    <div class="table">
+      <div class="trow hdr"><span>Tool</span><span>Wat het ontsluit</span><span>Toestemming</span><span>Status</span></div>
+      <div class="trow"><span class="n">search_notes</span><span class="w">1.564 notities, bodies uitpakbaar</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">create_note</span><span class="w">Korte notitie dicteren</span><span class="pill-t p-ask">Vraagt</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">search_messages</span><span class="w">231.081 berichten</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">list_reminders</span><span class="w">Herinneringen via EventKit</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">create_reminder</span><span class="w">Taak toevoegen</span><span class="pill-t p-ask">Vraagt</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">list_contacts</span><span class="w">Adresboek</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">run_shortcut</span><span class="w">Élke Shortcut wordt een tool</span><span class="pill-t p-ask">Vraagt</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">browser_history</span><span class="w">4.394 Safari-items</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">clipboard_read</span><span class="w">Wat er op je klembord staat</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Nieuw</span></div>
+      <div class="trow"><span class="n">search_memory</span><span class="w">De index over alle bronnen</span><span class="pill-t p-free">Direct</span><span class="pill-t p-new">Fase C</span></div>
+      <div class="trow"><span class="n">remember</span><span class="w">Feit onthouden dat jij vertelt</span><span class="pill-t p-ask">Vraagt</span><span class="pill-t p-new">Fase C</span></div>
+    </div>
+
+    <p class="note"><b><code>run_shortcut</code> verdient een streep.</b> Het maakt de
+      toolset oneindig uitbreidbaar zonder code: alles wat jij in Shortcuts bouwt, kan
+      het model aanroepen. Dat is een beter antwoord op "laat de AI zelf tools maken"
+      dan een tool die shell-sjablonen wegschrijft — jij hebt de Shortcut immers zelf
+      gemaakt, dus de grens blijft waar hij hoort. Geverifieerd: de <code>shortcuts</code>
+      CLI werkt op deze machine.</p>
+
+    <div style="margin-top:26px">
+      <p class="eyebrow" style="margin-bottom:6px">Het risico dat het meest onderschat wordt</p>
+      <div class="card">
+        <h3>Meer tools is niet lineair beter</h3>
+        <p>Elk toolschema kost context, en elke extra keuze verhoogt de kans dat qwen3:8b
+          de verkeerde pakt. Bij 25+ tools is een tool-search-laag waarschijnlijk nodig:
+          het model zoekt eerst welke tool past, en laadt pas dan het volledige schema.
+          Dit is het soort probleem dat je pas ziet nadat je het veroorzaakt hebt, dus
+          het hoort in het plan en niet in de nabeschouwing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ Plan ══ -->
+<section style="border-bottom:0">
+  <div class="wrap">
+    <div class="shead">
+      <p class="eyebrow">Volgorde</p>
+      <h2>Wat wanneer, en waarom in die volgorde</h2>
+      <p>Het goedkope eerst, zodat er snel iets te merken is en de dure keuzes met meer
+        informatie gemaakt worden.</p>
+    </div>
+
+    <div class="card" style="padding:6px 20px">
+      <div class="phase"><span class="lab">Fase A</span>
+        <span class="d">Bereik — notities, berichten, herinneringen, contacten,
+          Shortcuts, klembord, browsergeschiedenis</span><span class="cost">1–2 dagen</span></div>
+      <div class="phase"><span class="lab">Fase B</span>
+        <span class="d">Menubalk-statusitem, pill-fallback zonder notch, toestemmingen
+          per bron in onboarding</span><span class="cost">1 dag</span></div>
+      <div class="phase"><span class="lab">Fase C</span>
+        <span class="d">Geheugen: FTS5-index, opt-in per bron, embeddings via Ollama,
+          <code>remember</code></span><span class="cost">3–5 dagen</span></div>
+      <div class="phase"><span class="lab">Fase D</span>
+        <span class="d">Pas als C tekortschiet: graph, schermafbeeldingen met vision,
+          Accessibility-besturing</span><span class="cost">open</span></div>
+    </div>
+
+    <p class="note">Mijn advies: <b>A en B, en dan kijken.</b> Samen drie dagen, en het
+      verandert het karakter van de app — van een chatvenster dat een paar dingen opzoekt
+      naar iets dat je Mac kent. Het geheugen uit fase C is duurder en levert pas op als
+      je de app dagelijks gebruikt, en dat weet je pas ná A en B.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Xinori Notch AI — mockup bij <code>docs/ANALYSE.md</code> · niets hiervan is gebouwd</div>
+</footer>
+
+</body>
+</html>
