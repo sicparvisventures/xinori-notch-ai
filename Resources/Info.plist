@@ -31,6 +31,10 @@
 	<string>Spraak wordt on-device omgezet naar tekst; er wordt geen audio verstuurd.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>NotchAI stuurt opdrachten naar apps als Mail om je vragen over je Mac te kunnen beantwoorden.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>NotchAI leest en maakt herinneringen zodat je kunt vragen wat er nog openstaat.</string>
+	<key>NSContactsUsageDescription</key>
+	<string>NotchAI zoekt in je contacten zodat je naar telefoonnummers en adressen kunt vragen.</string>
 	<key>NSCalendarsFullAccessUsageDescription</key>
 	<string>NotchAI leest je agenda zodat je kunt vragen wat er op de planning staat.</string>
 </dict>

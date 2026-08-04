@@ -22,6 +22,9 @@ final class OllamaSetup: ObservableObject {
     @Published private(set) var pullProgress: Double?
     @Published private(set) var pullStatus: String?
     @Published private(set) var errorText: String?
+    /// Which model is downloading, so the catalog can show progress on the
+    /// right row instead of on all of them.
+    @Published private(set) var pullingTag: String?
 
     /// The model onboarding installs. Deliberately a pinned tag rather than
     /// `latest`: tool calling is the whole point here, and an unpinned tag can
@@ -108,6 +111,7 @@ final class OllamaSetup: ObservableObject {
     /// Pull a model, reporting progress. Ollama streams NDJSON with byte
     /// counters, which is the only way to show a real bar for a 5 GB download.
     func pull(_ model: String = OllamaSetup.defaultModel) async {
+        pullingTag = model
         pullProgress = 0
         pullStatus = "Verbinden…"
         errorText = nil
@@ -144,13 +148,25 @@ final class OllamaSetup: ObservableObject {
 
             pullStatus = "Klaar"
             pullProgress = 1
+            pullingTag = nil
             await refresh()
         } catch {
             errorText = error.localizedDescription
             pullProgress = nil
             pullStatus = nil
+            pullingTag = nil
         }
     }
 
     var isPulling: Bool { pullProgress != nil && (pullProgress ?? 0) < 1 }
+
+    /// Models Ollama currently has locally, for the catalog's installed state.
+    var installedTags: [String] {
+        if case let .ready(models) = step { return models }
+        return []
+    }
+
+    func isInstalled(_ tag: String) -> Bool {
+        installedTags.contains { $0 == tag || $0.hasPrefix(tag + ":") || tag.hasPrefix($0) }
+    }
 }

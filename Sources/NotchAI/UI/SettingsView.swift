@@ -22,6 +22,7 @@ struct SettingsView: View {
                     behaviourSection
                     keysSection
                     localSection
+                    ModelCatalogView(chat: chat, ollama: ollama)
                     permissionsSection
                     aboutSection
                 }

@@ -67,6 +67,13 @@ cd xinori-notch-ai
 | `frontmost_app` | What app and window is in front | freely |
 | `list_apps` | Installed and running applications | freely |
 | `list_mail` | Inbox via Mail's own index — needs Full Disk Access | freely |
+| `search_notes` / `read_note` | Apple Notes, incl. bodies (gzip protobuf) — needs Full Disk Access | freely |
+| `search_messages` | iMessage and SMS — needs Full Disk Access | freely |
+| `browser_history` | Safari history — needs Full Disk Access | freely |
+| `list_reminders` | Open reminders via EventKit | freely |
+| `search_contacts` | Contacts by name | freely |
+| `list_shortcuts` | Every Shortcut on the machine | freely |
+| `clipboard_read` | What's on the clipboard | freely |
 | `list_calendar` | Upcoming events via EventKit | freely |
 | `compose_mail` | Opens a prefilled compose window — you send | **asks first** |
 | `create_calendar_event` | Adds an event to your default calendar | **asks first** |
@@ -76,10 +83,19 @@ cd xinori-notch-ai
 | `open_path` | Opens a file, folder or URL | **asks first** |
 | `control_app` | Activates or quits an app | **asks first** |
 | `schedule_job` | Creates a recurring launchd job | **asks first** |
+| `create_note` | Writes a note to Apple Notes | **asks first** |
+| `create_reminder` | Adds a reminder | **asks first** |
+| `run_shortcut` | Runs any Shortcut you've built | **asks first** |
+| `clipboard_write` | Puts text on the clipboard | **asks first** |
 | `run_shell` | Arbitrary shell command | **asks first** |
 
 Adding a tool means conforming to `Tool` and adding it to `ToolRegistry.tools`.
 The schema and the approval behaviour follow from the type.
+
+`run_shortcut` is worth singling out: it makes the toolset extensible **without
+code**. Anything you can build in Shortcuts becomes callable, which is a better
+answer to "let the AI make its own tools" than a `create_tool` that writes shell
+templates — you built the Shortcut, so the boundary stays where it belongs.
 
 ### The safety model
 
@@ -95,6 +111,22 @@ An LLM driving your Mac is only as safe as what it can do without you. So:
   through a shell, so an argument containing `;` or backticks is data rather than
   syntax. `run_shell` is the single deliberate exception.
 - Nothing is auto-approved and there is no "always allow" — by design.
+
+## Choosing a model
+
+Settings lists a catalogue of tool-capable local models with the one fact that
+decides the choice: how much memory each needs. The app reads this machine's RAM,
+subtracts a reserve for macOS and your other apps (30% or 6 GB, whichever is
+larger), and marks each model **past goed** / **krap** / **te groot** against
+what's left — then recommends the largest one that still sits comfortably.
+
+On a 24 GB M5 that budget is 16.8 GB, so `qwen3:14b` (8.7 GB) is recommended,
+`gpt-oss:20b` is flagged tight and `qwen3:30b-a3b` too large. Download happens
+in place with a real progress bar.
+
+Sizes are the actual layer totals from the Ollama registry, not estimates — an
+"8B" model is anywhere from 4.5 to 9 GB depending on quantisation, and it's the
+bytes that have to fit.
 
 ## Setup and settings
 

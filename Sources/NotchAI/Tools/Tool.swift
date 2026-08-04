@@ -114,3 +114,27 @@ enum ToolError: LocalizedError {
         }
     }
 }
+
+
+/// Four different tools read four different TCC-protected stores, and each one
+/// fails in its own dialect: sqlite3 says "unable to open database file", Python
+/// raises `OperationalError`, Foundation returns a permission error. Left to
+/// themselves they surface as gibberish, and the model then invents an
+/// explanation — it once offered to set up a mail account that already existed.
+enum FullDiskAccess {
+    static func looksDenied(_ text: String) -> Bool {
+        let lowered = text.lowercased()
+        return lowered.contains("unable to open database")
+            || lowered.contains("operationalerror")
+            || lowered.contains("authorization denied")
+            || lowered.contains("operation not permitted")
+            || lowered.contains("permission denied")
+    }
+
+    static func error(_ source: String) -> ToolError {
+        .unavailable("""
+        Geen toegang tot \(source). Zet NotchAI aan bij Systeeminstellingen → \
+        Privacy en beveiliging → Volledige schijftoegang, en start de app opnieuw.
+        """)
+    }
+}

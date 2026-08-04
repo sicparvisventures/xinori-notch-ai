@@ -25,6 +25,18 @@ struct ToolRegistry: Sendable {
         OpenPathTool(),
         ListAppsTool(),
         ControlAppTool(),
+        SearchNotesTool(),
+        ReadNoteTool(),
+        CreateNoteTool(),
+        SearchMessagesTool(),
+        ListRemindersTool(),
+        CreateReminderTool(),
+        ListContactsTool(),
+        ListShortcutsTool(),
+        RunShortcutTool(),
+        ClipboardReadTool(),
+        ClipboardWriteTool(),
+        BrowserHistoryTool(),
         RunShellTool(),
     ]
 
